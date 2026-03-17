@@ -31,8 +31,8 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 URL_WEBHOOK = "https://script.google.com/macros/s/AKfycbwBkmZtEU_h0ApOyel01MKNx_7rjUArm8P1wGiH7EgTFO-WhMOmmcfG3sElcy7N3F1x/exec"
-GROQ_API_KEY = "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"
-HF_TOKEN = "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" 
+GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
+HF_TOKEN = st.secrets["HF_TOKEN"]
 
 # --- HERRAMIENTAS DE SEGURIDAD ---
 def obtener_texto_seguro(valor, por_defecto=""):
