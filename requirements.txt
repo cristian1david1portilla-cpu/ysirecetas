@@ -1,0 +1,6 @@
+streamlit
+groq
+st-gsheets-connection
+pandas
+requests
+fpdf2
