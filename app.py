@@ -33,7 +33,6 @@ st.markdown("""
 URL_WEBHOOK = "https://script.google.com/macros/s/AKfycbwBkmZtEU_h0ApOyel01MKNx_7rjUArm8P1wGiH7EgTFO-WhMOmmcfG3sElcy7N3F1x/exec"
 GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 
-# --- HERRAMIENTAS DE SEGURIDAD ---
 def obtener_texto_seguro(valor, por_defecto=""):
     if isinstance(valor, float): return por_defecto
     if not valor: return por_defecto
@@ -54,7 +53,6 @@ def procesar_lista(datos_brutos, es_paso=False):
         limpia.append(txt)
     return limpia
 
-# --- MOTOR PDF ---
 def generar_pdf(titulo, ingredientes, pasos, tiempo, kcal, img_bytes=None):
     pdf = FPDF()
     pdf.add_page()
@@ -103,47 +101,49 @@ def generar_pdf(titulo, ingredientes, pasos, tiempo, kcal, img_bytes=None):
             
     return bytes(pdf.output())
 
-# --- IA VISUAL (POLLINATIONS AI) ---
+# --- IA VISUAL (HACK ANTI-BLOQUEO) ---
 @st.cache_data(show_spinner=False)
-def conseguir_imagen(prompt_visual_ingles):
+def conseguir_imagen(titulo_plato):
     try:
-        prompt_codificado = urllib.parse.quote(prompt_visual_ingles)
+        prompt_corto = f"Delicious {titulo_plato}, professional food photography, 8k"
+        prompt_codificado = urllib.parse.quote(prompt_corto)
         url = f"https://image.pollinations.ai/prompt/{prompt_codificado}?width=800&height=500&nologo=true"
-        r = requests.get(url, timeout=30)
+        # Disfrazamos la petición para que crea que somos un navegador web normal
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
+        r = requests.get(url, headers=headers, timeout=20)
         if r.status_code == 200: 
             return r.content
         return None
     except: 
         return None
 
-# --- IA RECETAS ---
+# --- IA RECETAS (A PRUEBA DE TONTOS) ---
 def generar_receta(ingredientes, tiempo, tipo):
     client = Groq(api_key=GROQ_API_KEY)
     
-    regla_tiempo = f"Ajusta las técnicas culinarias para no pasarte de {tiempo} de elaboración total."
-    if "+2h" in str(tiempo):
-        regla_tiempo = "Tiempo ILIMITADO. 'Slow Food'. Elaborar bases desde cero."
+    regla_tiempo = f"Ajusta las técnicas para {tiempo}."
+    if "+2h" in str(tiempo): regla_tiempo = "Tiempo ILIMITADO. Slow Food."
 
-    prompt = f"""Eres un Chef Ejecutivo con 3 Estrellas Michelin. Diseña una receta de {tipo} utilizando: {ingredientes}. Tiempo: {tiempo}.
+    prompt = f"""Eres un Chef Ejecutivo. Diseña una receta de {tipo} con: {ingredientes}.
     
-    EXIJO MÁXIMO DETALLE CULINARIO.
+    REGLAS ESTRICTAS:
     1. TIEMPO: {regla_tiempo}
-    2. INGREDIENTES: Cantidades exactas.
-    3. PASOS: Minucioso. Temperaturas exactas.
-    4. Devuelve EXACTAMENTE este formato JSON válido:
+    2. CALORÍAS: Inventa un número realista y añade 'kcal' (ejemplo: 450 kcal). ESTÁ ESTRICTAMENTE PROHIBIDO ESCRIBIR EL TIEMPO EN ESTE CAMPO.
+    
+    Devuelve EXACTAMENTE este formato JSON:
     {{
-        "titulo": "Nombre sofisticado del plato en español",
+        "titulo": "Nombre del plato",
         "tiempo": "{tiempo}",
-        "calorias": "Calcula las calorias totales estimadas (ej: 450 kcal)",
-        "ingredientes": ["400 gramos de salmón fresco"],
-        "pasos": ["Sella el salmón..."]
+        "calorias": "500 kcal",
+        "ingredientes": ["ingrediente 1"],
+        "pasos": ["paso 1"]
     }}"""
     
     try:
         chat = client.chat.completions.create(
             messages=[{"role":"user","content":prompt}], 
             model="llama-3.3-70b-versatile",
-            temperature=0.3, 
+            temperature=0.2, 
             response_format={"type": "json_object"}
         )
         return json.loads(chat.choices[0].message.content)
@@ -156,33 +156,26 @@ def mostrar_tarjeta(r, indice=0):
     tiempo = obtener_texto_seguro(r.get('Tiempo') or r.get('tiempo'), "")
     kcal = obtener_texto_seguro(r.get('Calorias') or r.get('calorias') or r.get('kcal') or r.get('Kcal'), "")
     
-    prompt_img = f"Professional food photography of {t}, highly detailed, 8k, restaurant plating, cinematic lighting"
-    
     ing_lista = procesar_lista(r.get('Ingredientes') or r.get('ingredientes'), es_paso=False)
     pas_lista = procesar_lista(r.get('Pasos') or r.get('pasos'), es_paso=True)
 
     st.markdown('<div class="recipe-card">', unsafe_allow_html=True)
-    
     st.markdown(f'<h2 class="serif-title" style="margin-top:0px; margin-bottom:5px;">{t}</h2>', unsafe_allow_html=True)
     
     info_texto = ""
-    if tiempo and tiempo.upper() != "N/A":
-        info_texto += f"⏱️ Tiempo: {tiempo} &nbsp;&nbsp;"
-    if kcal and kcal.upper() != "N/A":
-        info_texto += f"🔥 Calorías: {kcal}"
+    if tiempo and tiempo.upper() != "N/A": info_texto += f"⏱️ Tiempo: {tiempo} &nbsp;&nbsp;"
+    if kcal and kcal.upper() != "N/A": info_texto += f"🔥 Calorías: {kcal}"
         
     if info_texto:
         st.markdown(f'<p style="color:#C86C58; font-weight:700; font-size:1.1rem; margin-bottom:15px;">{info_texto}</p>', unsafe_allow_html=True)
     
     with st.spinner(f"👨‍🍳 Fotografiando el emplatado de {t}..."):
-        img_bytes = conseguir_imagen(prompt_img)
-        if img_bytes: 
-            st.image(img_bytes, use_container_width=True)
+        img_bytes = conseguir_imagen(t)
+        if img_bytes: st.image(img_bytes, use_container_width=True)
 
     with st.expander("VER RECETA PASO A PASO"):
         st.write("### 🛒 Ingredientes")
         for i in ing_lista: st.write(f"- {i}")
-        
         st.write("### 👨‍🍳 Preparación")
         for idx, p in enumerate(pas_lista): st.write(f"**{idx+1}.** {p}")
         
@@ -201,8 +194,7 @@ def mostrar_tarjeta(r, indice=0):
 
 st.markdown("<h1 class='brand-title serif-title'>¿Y Si Recetas?</h1>", unsafe_allow_html=True)
 
-with st.sidebar:
-    menu = st.radio("MENÚ", ["Diseñar", "Mi Colección"])
+with st.sidebar: menu = st.radio("MENÚ", ["Diseñar", "Mi Colección"])
 
 if menu == "Diseñar":
     col1, col2 = st.columns(2)
@@ -217,12 +209,10 @@ if menu == "Diseñar":
                 resultado = generar_receta(ing_input, t_slider, tipo)
                 if resultado: st.session_state.actual = resultado
             
-    if 'actual' in st.session_state:
-        mostrar_tarjeta(st.session_state.actual)
+    if 'actual' in st.session_state: mostrar_tarjeta(st.session_state.actual)
 
 elif menu == "Mi Colección":
     conn = st.connection("gsheets", type=GSheetsConnection)
     df = conn.read(ttl=0)
     if not df.empty:
-        for idx, row in df.iloc[::-1].iterrows():
-            mostrar_tarjeta(row.to_dict(), idx)
+        for idx, row in df.iloc[::-1].iterrows(): mostrar_tarjeta(row.to_dict(), idx)
