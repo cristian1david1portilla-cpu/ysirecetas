@@ -101,23 +101,14 @@ def generar_pdf(titulo, ingredientes, pasos, tiempo, kcal, img_bytes=None):
             
     return bytes(pdf.output())
 
-# --- IA VISUAL (HACK ANTI-BLOQUEO) ---
-@st.cache_data(show_spinner=False)
-def conseguir_imagen(titulo_plato):
-    try:
-        prompt_corto = f"Delicious {titulo_plato}, professional food photography, 8k"
-        prompt_codificado = urllib.parse.quote(prompt_corto)
-        url = f"https://image.pollinations.ai/prompt/{prompt_codificado}?width=800&height=500&nologo=true"
-        # Disfrazamos la petición para que crea que somos un navegador web normal
-        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
-        r = requests.get(url, headers=headers, timeout=20)
-        if r.status_code == 200: 
-            return r.content
-        return None
-    except: 
-        return None
+# --- IA VISUAL (EL TRUCO DE LA URL DIRECTA) ---
+def conseguir_url_imagen(titulo_plato):
+    # En lugar de descargarla, creamos la ruta para que tu navegador la cargue directamente
+    prompt_corto = f"Delicious {titulo_plato}, professional food photography, 8k, restaurant plating"
+    prompt_codificado = urllib.parse.quote(prompt_corto)
+    return f"https://image.pollinations.ai/prompt/{prompt_codificado}?width=800&height=500&nologo=true"
 
-# --- IA RECETAS (A PRUEBA DE TONTOS) ---
+# --- IA RECETAS ---
 def generar_receta(ingredientes, tiempo, tipo):
     client = Groq(api_key=GROQ_API_KEY)
     
@@ -169,9 +160,9 @@ def mostrar_tarjeta(r, indice=0):
     if info_texto:
         st.markdown(f'<p style="color:#C86C58; font-weight:700; font-size:1.1rem; margin-bottom:15px;">{info_texto}</p>', unsafe_allow_html=True)
     
-    with st.spinner(f"👨‍🍳 Fotografiando el emplatado de {t}..."):
-        img_bytes = conseguir_imagen(t)
-        if img_bytes: st.image(img_bytes, use_container_width=True)
+    # EL CAMBIO MÁGICO: Le damos la URL a Streamlit y tu navegador hace el trabajo sucio
+    url_img = conseguir_url_imagen(t)
+    st.image(url_img, use_container_width=True)
 
     with st.expander("VER RECETA PASO A PASO"):
         st.write("### 🛒 Ingredientes")
@@ -186,6 +177,10 @@ def mostrar_tarjeta(r, indice=0):
                 requests.post(URL_WEBHOOK, json=payload)
                 st.toast("¡Guardado en la base de datos!")
         with c2:
+            # Para el PDF, intentamos bajarla rápido. Si el servidor nos bloquea, el PDF sale sin foto, pero la web sigue perfecta.
+            try: img_bytes = requests.get(url_img, timeout=5).content
+            except: img_bytes = None
+            
             nombre_archivo = f"{t.replace(' ', '_')}.pdf"
             pdf_b = generar_pdf(t, ing_lista, pas_lista, tiempo, kcal, img_bytes)
             st.download_button("📄 Descargar PDF", data=pdf_b, file_name=nombre_archivo, mime="application/pdf", key=f"pdf_{indice}")
