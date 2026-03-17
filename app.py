@@ -74,7 +74,7 @@ def generar_pdf(titulo, ingredientes, pasos, tiempo, kcal, img_bytes=None):
 
     pdf.set_font("helvetica", "I", 11)
     pdf.set_text_color(200, 108, 88)
-    info_texto = f"Tiempo: {tiempo} | Calorias: {kcal}"
+    info_texto = f"Tiempo: {tiempo} | Calorías: {kcal}"
     pdf.cell(ancho_max, 8, limpiar_texto_pdf(info_texto), align='C', ln=True)
     pdf.ln(5)
 
@@ -92,7 +92,7 @@ def generar_pdf(titulo, ingredientes, pasos, tiempo, kcal, img_bytes=None):
     
     pdf.set_font("helvetica", "B", 14)
     pdf.set_text_color(44, 54, 43)
-    pdf.cell(ancho_max, 8, "Preparacion Paso a Paso:", ln=True)
+    pdf.cell(ancho_max, 8, "Preparación Paso a Paso:", ln=True)
     pdf.set_font("helvetica", "", 10)
     
     for idx, p in enumerate(pasos):
@@ -134,7 +134,7 @@ def generar_receta(ingredientes, tiempo, tipo):
     {{
         "titulo": "Nombre sofisticado del plato en español",
         "tiempo": "{tiempo}",
-        "kcal": "450",
+        "calorias": "Calcula las calorias totales estimadas (ej: 450 kcal)",
         "ingredientes": ["400 gramos de salmón fresco"],
         "pasos": ["Sella el salmón..."]
     }}"""
@@ -153,8 +153,8 @@ def generar_receta(ingredientes, tiempo, tipo):
 # --- INTERFAZ ---
 def mostrar_tarjeta(r, indice=0):
     t = obtener_texto_seguro(r.get('Titulo') or r.get('titulo') or r.get('Título'), "Receta Gourmet")
-    tiempo = obtener_texto_seguro(r.get('Tiempo') or r.get('tiempo'), "N/A")
-    kcal = obtener_texto_seguro(r.get('Calorias') or r.get('calorias') or r.get('Kcal'), "N/A")
+    tiempo = obtener_texto_seguro(r.get('Tiempo') or r.get('tiempo'), "")
+    kcal = obtener_texto_seguro(r.get('Calorias') or r.get('calorias') or r.get('kcal') or r.get('Kcal'), "")
     
     prompt_img = f"Professional food photography of {t}, highly detailed, 8k, restaurant plating, cinematic lighting"
     
@@ -164,7 +164,15 @@ def mostrar_tarjeta(r, indice=0):
     st.markdown('<div class="recipe-card">', unsafe_allow_html=True)
     
     st.markdown(f'<h2 class="serif-title" style="margin-top:0px; margin-bottom:5px;">{t}</h2>', unsafe_allow_html=True)
-    st.markdown(f'<p style="color:#C86C58; font-weight:700; font-size:1.1rem; margin-bottom:15px;">⏱️ Tiempo: {tiempo} &nbsp;|&nbsp; 🔥 Calorías: {kcal}</p>', unsafe_allow_html=True)
+    
+    info_texto = ""
+    if tiempo and tiempo.upper() != "N/A":
+        info_texto += f"⏱️ Tiempo: {tiempo} &nbsp;&nbsp;"
+    if kcal and kcal.upper() != "N/A":
+        info_texto += f"🔥 Calorías: {kcal}"
+        
+    if info_texto:
+        st.markdown(f'<p style="color:#C86C58; font-weight:700; font-size:1.1rem; margin-bottom:15px;">{info_texto}</p>', unsafe_allow_html=True)
     
     with st.spinner(f"👨‍🍳 Fotografiando el emplatado de {t}..."):
         img_bytes = conseguir_imagen(prompt_img)
