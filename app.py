@@ -18,71 +18,69 @@ except ImportError:
 # --- CONFIGURACIÓN DE PÁGINA ---
 st.set_page_config(page_title="¿Y Si Recetas?", page_icon="🌿", layout="centered")
 
-# --- DISEÑO PREMIUM: COCINA REAL Y FONDO NÍTIDO ---
+# --- DISEÑO PREMIUM Y DESTRUCCIÓN INTELIGENTE DE LA BARRA ---
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght=0,500;0,700;1,500&family=Poppins:wght@300;400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,700;1,500&family=Poppins:wght@300;400;500;600;700&display=swap');
     
-    /* CIRUGÍA LÁSER: Ocultar botones feos (Deploy, menú derecho) pero dejar el botón del panel lateral */
     [data-testid="stToolbar"] { display: none !important; }
     [data-testid="stHeaderActionElements"] { display: none !important; }
     #MainMenu { visibility: hidden !important; }
     footer { visibility: hidden !important; }
     header { background-color: transparent !important; }
     
-    /* FONDO NÍTIDO CON INGREDIENTES REALES (ADIÓS PUNTOS Y MANCHAS) */
+    /* FONDO NÍTIDO, LIMPIO Y CON ELEMENTOS DE COCINA REALES */
     .stApp { 
-        background-color: #F0F5F0; /* Verde menta muy pálido y limpio */
+        background-color: #F4F7F4; /* Fondo menta muy pálido y limpio */
         
-        /* USAMOS 4 ICONOS SVG CULINARIOS REALES Y NÍTIDOS */
+        /* 4 ICONOS VECTORIALES PERFECTAMENTE RECONOCIBLES */
         background-image: 
-            /* 1. Cabeza de Ajo (Top Left) */
-            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%238A9A5B' fill-opacity='0.15' d='M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12C20,13.61 19.53,15.11 18.72,16.38C18.17,15.5 17.15,15 16,15C15.15,15 14.39,15.3 13.79,15.79C13.29,15.3 12.67,15 12,15C11.33,15 10.71,15.3 10.21,15.79C9.61,15.3 8.85,15 8,15C6.85,15 5.83,15.5 5.28,16.38C4.47,15.11 4,13.61 4,12A8,8 0 0,1 12,4M12,17A1,1 0 0,1 13,18A1,1 0 0,1 12,19A1,1 0 0,1 11,18A1,1 0 0,1 12,17M8,17A1,1 0 0,1 9,18A1,1 0 0,1 8,19A1,1 0 0,1 7,18A1,1 0 0,1 8,17M16,17A1,1 0 0,1 17,18A1,1 0 0,1 16,19A1,1 0 0,1 15,18A1,1 0 0,1 16,17Z'/%3E%3C/svg%3E"),
+            /* 1. Tenedor y Cuchillo (Arriba Izquierda) */
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%236A856A' fill-opacity='0.12' d='M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.84 3.75 3.97V22h1.5v-9.03C10.34 12.84 12 11.12 12 9V2h-1v7zm5-7v7h2.5V22H20V2h-4z'/%3E%3C/svg%3E"),
             
-            /* 2. Rama de Romero (Top Right) */
-            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%238A9A5B' fill-opacity='0.15' d='M17,12C17,14.42 15.28,16.44 13,16.9V21H11V16.9C8.72,16.44 7,14.42 7,12C7,9.58 8.72,7.56 11,7.1V3H13V7.1C15.28,7.56 17,9.58 17,12M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9Z'/%3E%3C/svg%3E"),
+            /* 2. Campana de Restaurante de Lujo (Arriba Derecha) */
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%236A856A' fill-opacity='0.12' d='M12 2C6.5 2 2 6.5 2 12v1h20v-1c0-5.5-4.5-10-10-10zm0 2c4.4 0 8 3.6 8 8H4c0-4.4 3.6-8 8-8zM2 14v2h20v-2H2z'/%3E%3C/svg%3E"),
             
-            /* 3. Batidor de Varillas (Bottom Left) */
-            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%238A9A5B' fill-opacity='0.15' d='M12 2c-.6 0-1 .4-1 1s.4 1 1 1c2.8 0 5 2.2 5 5s-2.2 5-5 5-5-2.2-5-5c0-.6-.4-1-1-1s-1 .4-1 1c0 3.9 3.1 7 7 7s7-3.1 7-7-3.1-7-7-7zM2.2 2.2a1 1 0 00-.2 1.4l2 3A1 1 0 005.4 6a1 1 0 00.2-1.4l-2-3a1 1 0 00-1.4-.2zm19.6 0a1 1 0 01.2 1.4l-2 3a1 1 0 01-1.6-.6a1 1 0 01-.2-1.4l2-3a1 1 0 011.4-.2zM12 18a1 1 0 00-1 1v2a1 1 0 002 0v-2a1 1 0 00-1-1z'/%3E%3C/svg%3E"),
+            /* 3. Copa de Vino (Abajo Izquierda) */
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%236A856A' fill-opacity='0.12' d='M21 3H3v2l8 9v5H8v2h8v-2h-3v-5l8-9V3zm-2.8 2l-1.8 2H7.6L5.8 5h12.4z'/%3E%3C/svg%3E"),
             
-            /* 4. Guindilla Picante (Bottom Right) */
-            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%238A9A5B' fill-opacity='0.15' d='M19.6 4.4c.5.5.5 1.3 0 1.8l-1.4 1.4c-.2.2-.5.3-.8.3-.1 0-.3 0-.4-.1-1.2-.6-2.5-1-3.9-1.2.1 1.4.5 2.7 1.2 3.9.1.1.1.3.1.4 0 .3-.1.6-.3.8L12.7 13c-.5.5-1.3.5-1.8 0l-1.4-1.4c-.5-.5-.5-1.3 0-1.8l1.4-1.4c.2-.2.5-.3.8-.3.1 0 .3 0 .4.1.6 1.2 1 2.5 1.2 3.9.1-.1.1-.3.1-.4 0-.3-.1-.6-.3-.8l-1.4-1.4c-.5-.5-.5-1.3 0-1.8l1.4-1.4c.5-.5 1.3-.5 1.8 0l1.4 1.4c.2.2.3.5.3.8 0 .1 0 .3-.1.4.6 1.2 1 2.5 1.2 3.9.1-.1.1-.3.1-.4 0-.3-.1-.6-.3-.8l-1.4-1.4c-.5-.5-.5-1.3 0-1.8l1.4-1.4c.5-.5 1.3-.5 1.8 0z'/%3E%3C/svg%3E");
+            /* 4. Gorro de Chef (Abajo Derecha) */
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%236A856A' fill-opacity='0.12' d='M12 3a7 7 0 00-6.3 4.1C3.5 7.6 2 9.6 2 12c0 2.8 2.2 5 5 5h10c2.8 0 5-2.2 5-5 0-2.4-1.5-4.4-3.7-4.9A7 7 0 0012 3zm0 2c2.4 0 4.5 1.5 5.3 3.6.2.6.8 1.1 1.4 1.1 1.6.2 2.8 1.5 2.8 3.3 0 1.7-1.3 3-3 3H7c-1.7 0-3-1.3-3-3 0-1.8 1.2-3.1 2.8-3.3.6 0 1.2-.5 1.4-1.1C9.1 6.5 10.4 5 12 5zm-4 11v2h8v-2H8z'/%3E%3C/svg%3E");
             
-        /* POSICIONAMIENTO DE LOS INGREDIENTES */
+        /* POSICIONAMIENTO EN LAS 4 ESQUINAS */
         background-position: 
-            30px 40px,               /* Ajo (Top Left) */
-            calc(100% - 30px) 150px,   /* Romero (Right Side) */
-            70px calc(100% - 70px),   /* Batidor (Bottom Left) */
-            calc(100% - 80px) calc(100% - 30px); /* Chili (Bottom Right) */
+            30px 40px,               
+            calc(100% - 30px) 40px,   
+            30px calc(100% - 40px),   
+            calc(100% - 30px) calc(100% - 40px); 
             
         background-repeat: no-repeat;
-        background-attachment: fixed; /* Los ingredientes se quedan quietos al hacer scroll */
-        background-size: 150px 150px; /* Tamaño grande y nítido para los iconos */
+        background-attachment: fixed; /* Se quedan quietos al hacer scroll */
+        background-size: 150px 150px; /* Tamaño grande y nítido */
         
-        color: #1A251A; 
+        color: #2D3A2D; 
         font-family: 'Poppins', sans-serif; 
     }
     
-    h1, h2, h3, .serif-title { font-family: 'Lora', serif !important; color: #0C1A0C !important; }
+    h1, h2, h3, .serif-title { font-family: 'Lora', serif !important; color: #1E2B1E !important; }
     
-    .brand-title { text-align: center; font-size: 4rem !important; margin-top: 2rem; margin-bottom: 2rem; font-weight: 700; letter-spacing: -1px; color: #0C1A0C !important;}
+    .brand-title { text-align: center; font-size: 4rem !important; margin-top: 2rem; margin-bottom: 2rem; font-weight: 700; letter-spacing: -1px; color: #1E2B1E !important;}
     
     .recipe-card { 
         background: #FFFFFF; 
         border-radius: 16px; 
         padding: 40px; 
-        box-shadow: 0 10px 40px rgba(12, 26, 12, 0.06); 
+        box-shadow: 0 10px 40px rgba(45, 58, 45, 0.08); 
         margin-bottom: 30px; 
         margin-top: 10px;
-        border: 1px solid #D1E0D1;
-        /* La tarjeta tapa los ingredientes del fondo para leer bien */
-        position: relative; 
+        border: 1px solid #DCE6DC;
+        position: relative; /* Evita que los iconos pisen el texto */
         z-index: 10;
     }
     
     .recipe-meta {
-        background-color: #F0F5F0;
-        color: #385C38; /* Verde Oliva Michelin */
+        background-color: #F5F9F5;
+        color: #4A804D; 
         font-weight: 600;
         font-size: 0.95rem;
         text-transform: uppercase;
@@ -91,11 +89,11 @@ st.markdown("""
         padding: 10px 15px;
         border-radius: 8px;
         display: inline-block;
-        border: 1px solid #D1E0D1;
+        border: 1px solid #DCE6DC;
     }
     
     .stButton>button, .stDownloadButton>button { 
-        background-color: #0C1A0C !important; /* Verde casi negro */
+        background-color: #1E2B1E !important; 
         color: #FFFFFF !important; 
         border-radius: 10px !important; 
         font-weight: 600 !important; 
@@ -108,9 +106,9 @@ st.markdown("""
         transition: all 0.3s ease;
     }
     .stButton>button:hover, .stDownloadButton>button:hover {
-        background-color: #385C38 !important; /* Verde Oliva Michelin al pasar el ratón */
+        background-color: #4A804D !important; 
         color: #FFFFFF !important;
-        box-shadow: 0 4px 12px rgba(56, 92, 56, 0.3);
+        box-shadow: 0 4px 12px rgba(74, 128, 77, 0.3);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -131,22 +129,22 @@ def generar_pdf(titulo, ingredientes, pasos, tiempo, kcal):
     pdf.set_auto_page_break(auto=True, margin=15)
     ancho_max = 190
     pdf.set_font("helvetica", "B", 22)
-    pdf.set_text_color(12, 26, 12)
+    pdf.set_text_color(30, 43, 30)
     pdf.multi_cell(ancho_max, 10, limpiar_texto_pdf(titulo), align='C')
     pdf.ln(5)
     pdf.set_font("helvetica", "I", 10)
-    pdf.set_text_color(56, 92, 56)
+    pdf.set_text_color(74, 128, 77)
     pdf.cell(ancho_max, 8, limpiar_texto_pdf(f"TIEMPO: {tiempo} | CALORÍAS: {kcal}"), align='C', ln=True)
     pdf.ln(8)
     pdf.set_font("helvetica", "B", 12)
-    pdf.set_text_color(12, 26, 12)
+    pdf.set_text_color(30, 43, 30)
     pdf.cell(ancho_max, 8, "INGREDIENTES:", ln=True)
     pdf.set_font("helvetica", "", 11)
-    pdf.set_text_color(40, 40, 40)
+    pdf.set_text_color(60, 60, 60)
     for ing in ingredientes: pdf.multi_cell(ancho_max, 6, f"- {limpiar_texto_pdf(ing)}" if not limpiar_texto_pdf(ing).startswith("-") else limpiar_texto_pdf(ing))
     pdf.ln(5)
     pdf.set_font("helvetica", "B", 12)
-    pdf.set_text_color(12, 26, 12)
+    pdf.set_text_color(30, 43, 30)
     pdf.cell(ancho_max, 8, "ELABORACIÓN:", ln=True)
     pdf.set_font("helvetica", "", 10)
     for idx, p in enumerate(pasos): pdf.multi_cell(ancho_max, 5, f"{idx+1}. {re.sub(r'^-\s*', '', limpiar_texto_pdf(p))}"); pdf.ln(2)
