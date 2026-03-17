@@ -8,6 +8,7 @@ import requests
 import subprocess
 import sys
 import io
+import urllib.parse  # NUEVA LIBRERÍA PARA EL MOTOR DE IMÁGENES
 
 try:
     from fpdf import FPDF
@@ -32,7 +33,6 @@ st.markdown("""
 
 URL_WEBHOOK = "https://script.google.com/macros/s/AKfycbwBkmZtEU_h0ApOyel01MKNx_7rjUArm8P1wGiH7EgTFO-WhMOmmcfG3sElcy7N3F1x/exec"
 GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
-HF_TOKEN = st.secrets["HF_TOKEN"]
 
 # --- HERRAMIENTAS DE SEGURIDAD ---
 def obtener_texto_seguro(valor, por_defecto=""):
@@ -104,17 +104,19 @@ def generar_pdf(titulo, ingredientes, pasos, tiempo, kcal, img_bytes=None):
             
     return bytes(pdf.output())
 
-# --- IA VISUAL ---
+# --- IA VISUAL (MOTOR BLINDADO ANTI-CORTES) ---
 @st.cache_data(show_spinner=False)
 def conseguir_imagen(prompt_visual_ingles):
-    headers = {"Authorization": f"Bearer {HF_TOKEN}"}
-    payload = {"inputs": prompt_visual_ingles}
     try:
-        url = "https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell"
-        r = requests.post(url, headers=headers, json=payload, timeout=60)
-        if r.status_code == 200: return r.content
+        # Usamos Pollinations AI: sin límite, sin registro, irrompible.
+        prompt_codificado = urllib.parse.quote(prompt_visual_ingles)
+        url = f"https://image.pollinations.ai/prompt/{prompt_codificado}?width=800&height=600&nologo=true"
+        r = requests.get(url, timeout=30)
+        if r.status_code == 200: 
+            return r.content
         return None
-    except: return None
+    except: 
+        return None
 
 # --- IA RECETAS ---
 def generar_receta(ingredientes, tiempo, tipo, alergias=""):
