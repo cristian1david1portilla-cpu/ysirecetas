@@ -9,6 +9,7 @@ import subprocess
 import sys
 import io
 import urllib.parse
+import random
 
 try:
     from fpdf import FPDF
@@ -101,12 +102,28 @@ def generar_pdf(titulo, ingredientes, pasos, tiempo, kcal, img_bytes=None):
             
     return bytes(pdf.output())
 
-# --- IA VISUAL (EL TRUCO DE LA URL DIRECTA) ---
+# --- IA VISUAL (CON SALVAVIDAS ANTI-ERRORES) ---
 def conseguir_url_imagen(titulo_plato):
-    # En lugar de descargarla, creamos la ruta para que tu navegador la cargue directamente
-    prompt_corto = f"Delicious {titulo_plato}, professional food photography, 8k, restaurant plating"
-    prompt_codificado = urllib.parse.quote(prompt_corto)
-    return f"https://image.pollinations.ai/prompt/{prompt_codificado}?width=800&height=500&nologo=true"
+    # Enlace de emergencia: Una foto espectacular de alta cocina por si la IA se satura
+    imagen_emergencia = "https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+    
+    try:
+        # Le añadimos un número aleatorio para obligar al servidor a darnos una foto nueva y saltarnos el error
+        seed = random.randint(1, 10000)
+        prompt_corto = f"Delicious {titulo_plato}, professional food photography, 8k, restaurant plating"
+        prompt_codificado = urllib.parse.quote(prompt_corto)
+        url_intentada = f"https://image.pollinations.ai/prompt/{prompt_codificado}?width=800&height=500&nologo=true&seed={seed}"
+        
+        # Comprobamos en silencio si el enlace funciona de verdad
+        respuesta = requests.get(url_intentada, timeout=5)
+        
+        # Si la respuesta es perfecta (200) y de verdad es una imagen, la usamos
+        if respuesta.status_code == 200 and 'image' in respuesta.headers.get('content-type', '').lower():
+            return url_intentada
+        else:
+            return imagen_emergencia
+    except:
+        return imagen_emergencia
 
 # --- IA RECETAS ---
 def generar_receta(ingredientes, tiempo, tipo):
@@ -160,7 +177,7 @@ def mostrar_tarjeta(r, indice=0):
     if info_texto:
         st.markdown(f'<p style="color:#C86C58; font-weight:700; font-size:1.1rem; margin-bottom:15px;">{info_texto}</p>', unsafe_allow_html=True)
     
-    # EL CAMBIO MÁGICO: Le damos la URL a Streamlit y tu navegador hace el trabajo sucio
+    # Aquí cargamos la imagen con el salvavidas
     url_img = conseguir_url_imagen(t)
     st.image(url_img, use_container_width=True)
 
@@ -177,7 +194,6 @@ def mostrar_tarjeta(r, indice=0):
                 requests.post(URL_WEBHOOK, json=payload)
                 st.toast("¡Guardado en la base de datos!")
         with c2:
-            # Para el PDF, intentamos bajarla rápido. Si el servidor nos bloquea, el PDF sale sin foto, pero la web sigue perfecta.
             try: img_bytes = requests.get(url_img, timeout=5).content
             except: img_bytes = None
             
