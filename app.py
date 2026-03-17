@@ -1,10 +1,7 @@
 import streamlit as st
 from groq import Groq
-from streamlit_gsheets import GSheetsConnection
-import pandas as pd
 import json
 import re
-import requests
 import subprocess
 import sys
 import uuid
@@ -31,39 +28,21 @@ st.markdown("""
     
     /* FONDO NÍTIDO, LIMPIO Y CON ELEMENTOS DE COCINA REALES */
     .stApp { 
-        background-color: #F4F7F4; /* Fondo menta muy pálido y limpio */
-        
-        /* 4 ICONOS VECTORIALES PERFECTAMENTE RECONOCIBLES */
+        background-color: #F4F7F4; 
         background-image: 
-            /* 1. Tenedor y Cuchillo (Arriba Izquierda) */
             url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%236A856A' fill-opacity='0.12' d='M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.84 3.75 3.97V22h1.5v-9.03C10.34 12.84 12 11.12 12 9V2h-1v7zm5-7v7h2.5V22H20V2h-4z'/%3E%3C/svg%3E"),
-            
-            /* 2. Campana de Restaurante de Lujo (Arriba Derecha) */
             url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%236A856A' fill-opacity='0.12' d='M12 2C6.5 2 2 6.5 2 12v1h20v-1c0-5.5-4.5-10-10-10zm0 2c4.4 0 8 3.6 8 8H4c0-4.4 3.6-8 8-8zM2 14v2h20v-2H2z'/%3E%3C/svg%3E"),
-            
-            /* 3. Copa de Vino (Abajo Izquierda) */
             url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%236A856A' fill-opacity='0.12' d='M21 3H3v2l8 9v5H8v2h8v-2h-3v-5l8-9V3zm-2.8 2l-1.8 2H7.6L5.8 5h12.4z'/%3E%3C/svg%3E"),
-            
-            /* 4. Gorro de Chef (Abajo Derecha) */
             url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%236A856A' fill-opacity='0.12' d='M12 3a7 7 0 00-6.3 4.1C3.5 7.6 2 9.6 2 12c0 2.8 2.2 5 5 5h10c2.8 0 5-2.2 5-5 0-2.4-1.5-4.4-3.7-4.9A7 7 0 0012 3zm0 2c2.4 0 4.5 1.5 5.3 3.6.2.6.8 1.1 1.4 1.1 1.6.2 2.8 1.5 2.8 3.3 0 1.7-1.3 3-3 3H7c-1.7 0-3-1.3-3-3 0-1.8 1.2-3.1 2.8-3.3.6 0 1.2-.5 1.4-1.1C9.1 6.5 10.4 5 12 5zm-4 11v2h8v-2H8z'/%3E%3C/svg%3E");
-            
-        /* POSICIONAMIENTO EN LAS 4 ESQUINAS */
-        background-position: 
-            30px 40px,               
-            calc(100% - 30px) 40px,   
-            30px calc(100% - 40px),   
-            calc(100% - 30px) calc(100% - 40px); 
-            
+        background-position: 30px 40px, calc(100% - 30px) 40px, 30px calc(100% - 40px), calc(100% - 30px) calc(100% - 40px); 
         background-repeat: no-repeat;
-        background-attachment: fixed; /* Se quedan quietos al hacer scroll */
-        background-size: 150px 150px; /* Tamaño grande y nítido */
-        
+        background-attachment: fixed;
+        background-size: 150px 150px; 
         color: #2D3A2D; 
         font-family: 'Poppins', sans-serif; 
     }
     
     h1, h2, h3, .serif-title { font-family: 'Lora', serif !important; color: #1E2B1E !important; }
-    
     .brand-title { text-align: center; font-size: 4rem !important; margin-top: 2rem; margin-bottom: 2rem; font-weight: 700; letter-spacing: -1px; color: #1E2B1E !important;}
     
     .recipe-card { 
@@ -74,7 +53,7 @@ st.markdown("""
         margin-bottom: 30px; 
         margin-top: 10px;
         border: 1px solid #DCE6DC;
-        position: relative; /* Evita que los iconos pisen el texto */
+        position: relative; 
         z-index: 10;
     }
     
@@ -113,7 +92,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-URL_WEBHOOK = "https://script.google.com/macros/s/AKfycbwBkmZtEU_h0ApOyel01MKNx_7rjUArm8P1wGiH7EgTFO-WhMOmmcfG3sElcy7N3F1x/exec"
 GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 
 def obtener_texto_seguro(valor, por_defecto=""): return str(valor) if not isinstance(valor, float) and valor else por_defecto
@@ -168,38 +146,28 @@ def generar_receta(ingredientes, tiempo, tipo, alergenos, es_sorpresa=False):
         return json.loads(chat.choices[0].message.content)
     except: return None
 
-def mostrar_tarjeta(r, modo="completo"):
+def mostrar_tarjeta(r):
     t = obtener_texto_seguro(r.get('Titulo') or r.get('titulo') or r.get('Título'), "Receta de Chef")
     tiempo = obtener_texto_seguro(r.get('Tiempo') or r.get('tiempo'), "")
     kcal = obtener_texto_seguro(r.get('Calorias') or r.get('calorias') or r.get('kcal') or r.get('Kcal'), "")
     ing_lista, pas_lista = procesar_lista(r.get('Ingredientes') or r.get('ingredientes')), procesar_lista(r.get('Pasos') or r.get('pasos'))
     id_unico = str(uuid.uuid4())[:8] 
 
-    if modo == "completo":
-        st.markdown('<div class="recipe-card">', unsafe_allow_html=True)
-        st.markdown(f'<h2 class="serif-title" style="margin-top:0px; font-size: 2.2rem; margin-bottom:15px;">🍽️ {t}</h2>', unsafe_allow_html=True)
-        info_texto = ("" if not tiempo or tiempo.upper() == "N/A" else f"⏱️ {tiempo} &nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp; ") + ("" if not kcal or kcal.upper() == "N/A" else f"🔥 {kcal}")
-        if info_texto: st.markdown(f'<div class="recipe-meta">{info_texto}</div>', unsafe_allow_html=True)
-        st.write("### 🛒 Ingredientes")
-        for i in ing_lista: st.write(f"- {i}")
-        st.write("---")
-        st.write("### 👨‍🍳 Elaboración")
-        for idx, p in enumerate(pas_lista): st.write(f"**{idx+1}.** {p}")
-        st.write("") 
-        c1, c2 = st.columns(2)
-        with c1:
-            if st.button("💾 Guardar Menú", key=f"sv_{id_unico}"):
-                requests.post(URL_WEBHOOK, json={"Titulo": t, "Ingredientes": " | ".join(ing_lista), "Pasos": " | ".join(pas_lista), "Tiempo": tiempo, "Calorias": kcal})
-                st.toast("✅ Añadido a tu colección")
-        with c2: st.download_button("📄 Imprimir PDF", data=generar_pdf(t, ing_lista, pas_lista, tiempo, kcal), file_name=f"{t.replace(' ', '_')}.pdf", mime="application/pdf", key=f"pdf_{id_unico}")
-        st.markdown("</div>", unsafe_allow_html=True)
-    elif modo == "resumen":
-        with st.expander(f"📖 {t} — ⏱️ {tiempo} | 🔥 {kcal}"):
-            st.write("### 🛒 Ingredientes")
-            for i in ing_lista: st.write(f"- {i}")
-            st.write("### 👨‍🍳 Elaboración")
-            for idx, p in enumerate(pas_lista): st.write(f"**{idx+1}.** {p}")
-            st.download_button("📄 Descargar", data=generar_pdf(t, ing_lista, pas_lista, tiempo, kcal), file_name=f"{t.replace(' ', '_')}.pdf", mime="application/pdf", key=f"pdf_res__{id_unico}")
+    st.markdown('<div class="recipe-card">', unsafe_allow_html=True)
+    st.markdown(f'<h2 class="serif-title" style="margin-top:0px; font-size: 2.2rem; margin-bottom:15px;">🍽️ {t}</h2>', unsafe_allow_html=True)
+    info_texto = ("" if not tiempo or tiempo.upper() == "N/A" else f"⏱️ {tiempo} &nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp; ") + ("" if not kcal or kcal.upper() == "N/A" else f"🔥 {kcal}")
+    if info_texto: st.markdown(f'<div class="recipe-meta">{info_texto}</div>', unsafe_allow_html=True)
+    st.write("### 🛒 Ingredientes")
+    for i in ing_lista: st.write(f"- {i}")
+    st.write("---")
+    st.write("### 👨‍🍳 Elaboración")
+    for idx, p in enumerate(pas_lista): st.write(f"**{idx+1}.** {p}")
+    st.write("") 
+    
+    # Botón de PDF centrado ocupando todo el ancho
+    pdf_b = generar_pdf(t, ing_lista, pas_lista, tiempo, kcal)
+    st.download_button("📄 Descargar Receta en PDF", data=pdf_b, file_name=f"{t.replace(' ', '_')}.pdf", mime="application/pdf", key=f"pdf_{id_unico}")
+    st.markdown("</div>", unsafe_allow_html=True)
 
 # --- NAVEGACIÓN CORPORATIVA ---
 with st.sidebar:
@@ -209,36 +177,28 @@ with st.sidebar:
 # --- RENDERIZADO DE PÁGINAS ---
 if pagina_actual == "App de Cocina":
     st.markdown("<h1 class='brand-title'>¿Y Si Recetas?</h1>", unsafe_allow_html=True)
-    tab_diseno, tab_coleccion = st.tabs(["✨ DISEÑAR NUEVO PLATO", "📚 MI COLECCIÓN PRIVADA"])
-
-    with tab_diseno:
-        st.write("")
-        col1, col2 = st.columns(2)
-        with col1: tipo = st.selectbox("Categoría del Plato", ["Comida", "Cena", "Postre"])
-        with col2: t_slider = st.select_slider("Tiempo de Elaboración", ["15 min", "30 min", "45 min", "60 min", "120 min", "+2h (Slow Food)"], value="30 min")
-            
-        ing_input = st.text_area("Ingredientes Base (Opcional)", placeholder="Ej: Gamba roja, ajos tiernos, un toque de azafrán... ¿Te atreves a retar al Chef?")
-        alergenos_input = st.text_input("🚫 Excluir Alérgenos (Opcional)", placeholder="Ej: Gluten, lactosa...")
+    
+    # ADIÓS PESTAÑAS, DIRECTO AL GRANO
+    st.write("")
+    col1, col2 = st.columns(2)
+    with col1: tipo = st.selectbox("Categoría del Plato", ["Comida", "Cena", "Postre"])
+    with col2: t_slider = st.select_slider("Tiempo de Elaboración", ["15 min", "30 min", "45 min", "60 min", "120 min", "+2h (Slow Food)"], value="30 min")
         
-        st.write("")
-        if st.button("COMENZAR CREACIÓN", use_container_width=True):
-            es_sorpresa = not ing_input.strip()
-            mensaje_spinner = "✨ Dejando volar la imaginación del Chef..." if es_sorpresa else "👨‍🍳 Procesando técnicas culinarias..."
-            with st.spinner(mensaje_spinner):
-                resultado = generar_receta(ing_input, t_slider, tipo, alergenos_input, es_sorpresa)
-                if resultado: st.session_state.actual = resultado
-                else: st.error("⚠️ Los fogones digitales están saturados. Por favor, haz clic de nuevo.")
-                
-        if 'actual' in st.session_state: mostrar_tarjeta(st.session_state.actual, modo="completo")
-
-    with tab_coleccion:
-        st.write("")
-        conn = st.connection("gsheets", type=GSheetsConnection)
-        df = conn.read(ttl=0)
-        if not df.empty:
-            df = df.drop_duplicates(subset=['Titulo']) 
-            for _, row in df.iloc[::-1].iterrows(): mostrar_tarjeta(row.to_dict(), modo="resumen")
-        else: st.info("Tu colección está vacía. Diseña tu primer plato para verlo aquí.")
+    ing_input = st.text_area("Ingredientes Base (Opcional)", placeholder="Ej: Gamba roja, ajos tiernos, un toque de azafrán... ¿Te atreves a retar al Chef?")
+    alergenos_input = st.text_input("🚫 Excluir Alérgenos (Opcional)", placeholder="Ej: Gluten, lactosa...")
+    
+    st.write("")
+    if st.button("COMENZAR CREACIÓN", use_container_width=True):
+        es_sorpresa = not ing_input.strip()
+        mensaje_spinner = "✨ Dejando volar la imaginación del Chef..." if es_sorpresa else "👨‍🍳 Procesando técnicas culinarias..."
+        with st.spinner(mensaje_spinner):
+            resultado = generar_receta(ing_input, t_slider, tipo, alergenos_input, es_sorpresa)
+            if resultado: st.session_state.actual = resultado
+            else: st.error("⚠️ Los fogones digitales están saturados. Por favor, haz clic de nuevo.")
+            
+    if 'actual' in st.session_state: 
+        st.markdown("---")
+        mostrar_tarjeta(st.session_state.actual)
 
 elif pagina_actual == "Sobre Nosotros":
     st.markdown("<h1 class='serif-title' style='text-align:center; font-size: 3rem;'>Nuestra Misión</h1>", unsafe_allow_html=True)
@@ -246,14 +206,14 @@ elif pagina_actual == "Sobre Nosotros":
     st.write("### Democratizando la Alta Cocina")
     st.write("¿Y Si Recetas? nace de una premisa sencilla: cualquier persona, independientemente de su nivel culinario, debería poder transformar los ingredientes olvidados de su nevera en una experiencia gastronómica de restaurante de lujo.")
     st.write("Aprovechando el poder de la Inteligencia Artificial Generativa (LLMs de última generación), hemos entrenado a nuestro motor para que actúe no solo como un recetario, sino como un Chef Ejecutivo que comprende técnicas, tiempos, balance de sabores y restricciones alimentarias en tiempo real.")
-    st.write("**Fase Actual:** MVP (Producto Mínimo Viable) v1.0. Validando la integración de la API de Groq con bases de datos relacionales ligeras.")
+    st.write("**Fase Actual:** MVP (Producto Mínimo Viable) v1.0. Validando la integración pura de la API de Groq en tiempo real.")
     st.markdown('</div>', unsafe_allow_html=True)
 
 elif pagina_actual == "Preguntas Frecuentes":
     st.markdown("<h1 class='serif-title' style='text-align:center; font-size: 3rem;'>FAQ</h1>", unsafe_allow_html=True)
     st.markdown('<div class="recipe-card">', unsafe_allow_html=True)
-    with st.expander("¿Mis recetas guardadas son públicas?"):
-        st.write("En esta primera versión (MVP), la colección opera sobre una base de datos central compartida para validar el flujo de información. En la Fase 2 del desarrollo (Arquitectura Escalable), implementaremos un sistema de autenticación de usuarios donde cada perfil tendrá su espacio encriptado y privado.")
+    with st.expander("¿Se guardan mis recetas?"):
+        st.write("No. Por motivos de privacidad y para garantizar una experiencia 100% efímera y personalizada, las recetas se generan en tiempo real y no se almacenan en ninguna base de datos. Si te gusta un plato, te recomendamos usar el botón de 'Descargar Receta en PDF'.")
     with st.expander("¿Cómo gestiona la IA las intolerancias alimentarias?"):
         st.write("El sistema inyecta instrucciones estrictas (System Prompts) en el modelo lingüístico para realizar un filtrado negativo. Si indicas 'celíaco', la IA descarta el trigo, centeno, cebada y avena de su matriz de generación, ofreciendo alternativas seguras.")
     with st.expander("¿De dónde salen las estimaciones de calorías?"):
@@ -266,5 +226,5 @@ elif pagina_actual == "Aviso Legal y Privacidad":
     st.write("### Términos de Uso y Descargo de Responsabilidad")
     st.write("Esta aplicación es un **Prototipo Tecnológico / Prueba de Concepto** desarrollado con fines académicos e investigativos.")
     st.write("**Responsabilidad Alimentaria:** Las recetas e informaciones nutricionales y de alérgenos son generadas mediante algoritmos de Inteligencia Artificial (LLMs). Aunque el sistema está diseñado para seguir directrices estrictas, **siempre se debe aplicar el juicio humano y consultar a profesionales médicos** en caso de alergias severas o condiciones de salud específicas. Los creadores de esta plataforma no se hacen responsables de reacciones adversas.")
-    st.write("**Protección de Datos:** Actualmente no recabamos datos de carácter personal ni utilizamos cookies de rastreo comercial.")
+    st.write("**Protección de Datos:** No recabamos datos de carácter personal, no utilizamos bases de datos para almacenar tus inputs y no utilizamos cookies de rastreo comercial. Todo el procesamiento se realiza en tiempo real.")
     st.markdown('</div>', unsafe_allow_html=True)
