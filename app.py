@@ -10,7 +10,6 @@ import sys
 import io
 import urllib.parse
 
-
 try:
     from fpdf import FPDF
 except ImportError:
@@ -26,7 +25,6 @@ st.markdown("""
     .stApp { background-color: #FDFBF7; color: #2C362B; font-family: 'Nunito', sans-serif; }
     h1, h2, h3, .serif-title { font-family: 'Lora', serif !important; color: #1A2619 !important; font-weight: 600; }
     .brand-title { text-align: center; font-size: 4rem !important; margin-top: 1rem; margin-bottom: 0rem; text-transform: uppercase; }
-    .brand-slogan { text-align: center; color: #C86C58; font-size: 1.2rem; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 2rem; }
     .recipe-card { background-color: #FFFFFF; border-radius: 12px; padding: 24px; border: 1px solid #EAE6D8; box-shadow: 0 10px 30px rgba(0,0,0,0.03); margin-bottom: 24px; }
     .stButton>button, .stDownloadButton>button { border-radius: 8px !important; font-weight: 700 !important; width: 100%; height: 3.5em; }
 </style>
@@ -105,13 +103,12 @@ def generar_pdf(titulo, ingredientes, pasos, tiempo, kcal, img_bytes=None):
             
     return bytes(pdf.output())
 
-# --- IA VISUAL ---
+# --- IA VISUAL (POLLINATIONS AI) ---
 @st.cache_data(show_spinner=False)
 def conseguir_imagen(prompt_visual_ingles):
     try:
-        # Motor Pollinations AI: sin límite y sin registro
         prompt_codificado = urllib.parse.quote(prompt_visual_ingles)
-        url = f"https://image.pollinations.ai/prompt/{prompt_codificado}?width=800&height=600&nologo=true"
+        url = f"https://image.pollinations.ai/prompt/{prompt_codificado}?width=800&height=500&nologo=true"
         r = requests.get(url, timeout=30)
         if r.status_code == 200: 
             return r.content
@@ -120,32 +117,26 @@ def conseguir_imagen(prompt_visual_ingles):
         return None
 
 # --- IA RECETAS ---
-def generar_receta(ingredientes, tiempo, tipo, alergias=""):
+def generar_receta(ingredientes, tiempo, tipo):
     client = Groq(api_key=GROQ_API_KEY)
     
-    regla_tiempo = ""
+    regla_tiempo = f"Ajusta las técnicas culinarias para no pasarte de {tiempo} de elaboración total."
     if "+2h" in str(tiempo):
-        regla_tiempo = "ESTRICTO: El tiempo es ILIMITADO. Es una receta de 'Slow Food'. DEBES elaborar TODAS las bases desde cero (fumets, caldos, masas madre, marinados largos). Prohibido usar ingredientes comerciales o de bote. Describe las horas de cocción o reposo en los pasos."
-    else:
-        regla_tiempo = f"ESTRICTO: Ajusta las técnicas culinarias para no pasarte de {tiempo} exactos de elaboración total."
+        regla_tiempo = "Tiempo ILIMITADO. 'Slow Food'. Elaborar bases desde cero."
 
-    prompt = f"""Eres un Chef Ejecutivo con 3 Estrellas Michelin. Diseña una receta de {tipo} utilizando: {ingredientes}. Tiempo elegido: {tiempo}. Alergias a evitar: {alergias}.
+    prompt = f"""Eres un Chef Ejecutivo con 3 Estrellas Michelin. Diseña una receta de {tipo} utilizando: {ingredientes}. Tiempo: {tiempo}.
     
     EXIJO MÁXIMO DETALLE CULINARIO.
-    
-    REGLAS DE ORO:
-    1. TIEMPO Y BASES: {regla_tiempo}
-    2. INGREDIENTES: Usa cantidades exactas (gramos, mililitros). Especifica el estado. PROHIBIDO usar abreviaturas.
-    3. PASOS DE PREPARACIÓN: Sé minucioso. Usa terminología culinaria profesional. Indica temperaturas exactas y describe las texturas esperadas.
-    4. EMPLATADO: El último paso debe estar dedicado exclusivamente al diseño del emplatado de alta cocina.
-    5. Devuelve EXACTAMENTE este formato JSON válido:
+    1. TIEMPO: {regla_tiempo}
+    2. INGREDIENTES: Cantidades exactas.
+    3. PASOS: Minucioso. Temperaturas exactas.
+    4. Devuelve EXACTAMENTE este formato JSON válido:
     {{
         "titulo": "Nombre sofisticado del plato en español",
         "tiempo": "{tiempo}",
         "kcal": "450",
-        "ingredientes": ["Espinas de pescado y cabezas de gamba para el fumet", "400 gramos de salmón fresco"],
-        "pasos": ["Para el fumet: Tuesta las espinas en el horno a 200°C y luego cuécelas a fuego lento durante 2 horas...", "Sella el salmón..."],
-        "prompt_imagen": "Masterclass food photography of [ENGLISH TRANSLATION OF DISH], showing [ENGLISH INGREDIENTS], Michelin star plating, highly detailed, photorealistic, NO PASTA, 8k, cinematic lighting"
+        "ingredientes": ["400 gramos de salmón fresco"],
+        "pasos": ["Sella el salmón..."]
     }}"""
     
     try:
@@ -161,35 +152,30 @@ def generar_receta(ingredientes, tiempo, tipo, alergias=""):
 
 # --- INTERFAZ ---
 def mostrar_tarjeta(r, indice=0):
-    t = obtener_texto_seguro(r.get('titulo') or r.get('Titulo'), "Receta Gourmet")
-    tiempo = obtener_texto_seguro(r.get('tiempo') or r.get('Tiempo'), "N/A")
-    kcal = obtener_texto_seguro(r.get('kcal') or r.get('Calorias'), "N/A")
-    prompt_pordefecto = f"Professional food photography of {t}, high detail, 8k"
-    prompt_img = obtener_texto_seguro(r.get('prompt_imagen'), prompt_pordefecto)
-    img_db = obtener_texto_seguro(r.get('Imagen') or r.get('imagen'), "")
+    t = obtener_texto_seguro(r.get('Titulo') or r.get('titulo') or r.get('Título'), "Receta Gourmet")
+    tiempo = obtener_texto_seguro(r.get('Tiempo') or r.get('tiempo'), "N/A")
+    kcal = obtener_texto_seguro(r.get('Calorias') or r.get('calorias') or r.get('Kcal'), "N/A")
     
-    ing_lista = procesar_lista(r.get('ingredientes') or r.get('Ingredientes'), es_paso=False)
-    pas_lista = procesar_lista(r.get('pasos') or r.get('Pasos'), es_paso=True)
+    prompt_img = f"Professional food photography of {t}, highly detailed, 8k, restaurant plating, cinematic lighting"
+    
+    ing_lista = procesar_lista(r.get('Ingredientes') or r.get('ingredientes'), es_paso=False)
+    pas_lista = procesar_lista(r.get('Pasos') or r.get('pasos'), es_paso=True)
 
     st.markdown('<div class="recipe-card">', unsafe_allow_html=True)
     
-    img_bytes = None
-    if img_db.startswith("http"):
-        st.image(img_db, use_container_width=True)
-        try: img_bytes = requests.get(img_db).content
-        except: pass
-    else:
-      with st.spinner(f"👨‍🍳 Fotografiando el emplatado de {t}..."):
-            img_bytes = conseguir_imagen(prompt_img)
-            if img_bytes: st.image(img_bytes, use_container_width=True)
-
-    st.markdown(f'<h2 class="serif-title" style="margin-top:10px;">{t}</h2>', unsafe_allow_html=True)
+    st.markdown(f'<h2 class="serif-title" style="margin-top:0px; margin-bottom:5px;">{t}</h2>', unsafe_allow_html=True)
+    st.markdown(f'<p style="color:#C86C58; font-weight:700; font-size:1.1rem; margin-bottom:15px;">⏱️ Tiempo: {tiempo} &nbsp;|&nbsp; 🔥 Calorías: {kcal}</p>', unsafe_allow_html=True)
     
-    with st.expander("VER RECETA COMPLETA"):
+    with st.spinner(f"👨‍🍳 Fotografiando el emplatado de {t}..."):
+        img_bytes = conseguir_imagen(prompt_img)
+        if img_bytes: 
+            st.image(img_bytes, use_container_width=True)
+
+    with st.expander("VER RECETA PASO A PASO"):
         st.write("### 🛒 Ingredientes")
         for i in ing_lista: st.write(f"- {i}")
         
-        st.write("### 👨‍🍳 Preparación Paso a Paso")
+        st.write("### 👨‍🍳 Preparación")
         for idx, p in enumerate(pas_lista): st.write(f"**{idx+1}.** {p}")
         
         c1, c2 = st.columns(2)
@@ -219,7 +205,7 @@ if menu == "Diseñar":
     
     if st.button("DISEÑAR MI PLATO", use_container_width=True):
         if ing_input:
-           with st.spinner("👨‍🍳 El Chef está desarrollando tu obra de arte..."):
+            with st.spinner("👨‍🍳 El Chef está desarrollando tu obra de arte..."):
                 resultado = generar_receta(ing_input, t_slider, tipo)
                 if resultado: st.session_state.actual = resultado
             
