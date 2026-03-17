@@ -7,9 +7,6 @@ import re
 import requests
 import subprocess
 import sys
-import io
-import urllib.parse
-import random
 
 try:
     from fpdf import FPDF
@@ -17,7 +14,7 @@ except ImportError:
     subprocess.check_call([sys.executable, "-m", "pip", "install", "fpdf2"])
     from fpdf import FPDF
 
-# --- MARCA Y DISEÑO ---
+# --- MARCA Y DISEÑO MINIMALISTA ---
 st.set_page_config(page_title="¿Y Si Recetas? | Alta Cocina", page_icon="🌿", layout="wide")
 
 st.markdown("""
@@ -25,8 +22,28 @@ st.markdown("""
     @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Nunito:wght@300;400;600;700&display=swap');
     .stApp { background-color: #FDFBF7; color: #2C362B; font-family: 'Nunito', sans-serif; }
     h1, h2, h3, .serif-title { font-family: 'Lora', serif !important; color: #1A2619 !important; font-weight: 600; }
-    .brand-title { text-align: center; font-size: 4rem !important; margin-top: 1rem; margin-bottom: 0rem; text-transform: uppercase; }
-    .recipe-card { background-color: #FFFFFF; border-radius: 12px; padding: 24px; border: 1px solid #EAE6D8; box-shadow: 0 10px 30px rgba(0,0,0,0.03); margin-bottom: 24px; }
+    .brand-title { text-align: center; font-size: 4rem !important; margin-top: 1rem; margin-bottom: 0rem; text-transform: uppercase; letter-spacing: 2px;}
+    
+    .recipe-card { 
+        background: linear-gradient(145deg, #ffffff, #FDFBF7);
+        border-left: 6px solid #C86C58;
+        border-radius: 12px; 
+        padding: 32px; 
+        box-shadow: 0 10px 30px rgba(0,0,0,0.04); 
+        margin-bottom: 24px; 
+    }
+    .recipe-meta {
+        background-color: #F4EFE6;
+        padding: 10px 18px;
+        border-radius: 8px;
+        display: inline-block;
+        color: #C86C58;
+        font-weight: 700;
+        font-size: 1.05rem;
+        margin-bottom: 20px;
+        border: 1px solid #EAE6D8;
+    }
+    
     .stButton>button, .stDownloadButton>button { border-radius: 8px !important; font-weight: 700 !important; width: 100%; height: 3.5em; }
 </style>
 """, unsafe_allow_html=True)
@@ -54,7 +71,7 @@ def procesar_lista(datos_brutos, es_paso=False):
         limpia.append(txt)
     return limpia
 
-def generar_pdf(titulo, ingredientes, pasos, tiempo, kcal, img_bytes=None):
+def generar_pdf(titulo, ingredientes, pasos, tiempo, kcal):
     pdf = FPDF()
     pdf.add_page()
     pdf.set_auto_page_break(auto=True, margin=15)
@@ -64,18 +81,12 @@ def generar_pdf(titulo, ingredientes, pasos, tiempo, kcal, img_bytes=None):
     pdf.set_text_color(44, 54, 43)
     pdf.multi_cell(ancho_max, 10, limpiar_texto_pdf(titulo), align='C')
     pdf.ln(5)
-    
-    if img_bytes:
-        try:
-            pdf.image(io.BytesIO(img_bytes), x=60, w=90)
-            pdf.ln(5)
-        except: pass
 
     pdf.set_font("helvetica", "I", 11)
     pdf.set_text_color(200, 108, 88)
     info_texto = f"Tiempo: {tiempo} | Calorías: {kcal}"
     pdf.cell(ancho_max, 8, limpiar_texto_pdf(info_texto), align='C', ln=True)
-    pdf.ln(5)
+    pdf.ln(8)
 
     pdf.set_font("helvetica", "B", 14)
     pdf.set_text_color(44, 54, 43)
@@ -102,41 +113,22 @@ def generar_pdf(titulo, ingredientes, pasos, tiempo, kcal, img_bytes=None):
             
     return bytes(pdf.output())
 
-# --- IA VISUAL (CON SALVAVIDAS ANTI-ERRORES) ---
-def conseguir_url_imagen(titulo_plato):
-    # Enlace de emergencia: Una foto espectacular de alta cocina por si la IA se satura
-    imagen_emergencia = "https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-    
-    try:
-        # Le añadimos un número aleatorio para obligar al servidor a darnos una foto nueva y saltarnos el error
-        seed = random.randint(1, 10000)
-        prompt_corto = f"Delicious {titulo_plato}, professional food photography, 8k, restaurant plating"
-        prompt_codificado = urllib.parse.quote(prompt_corto)
-        url_intentada = f"https://image.pollinations.ai/prompt/{prompt_codificado}?width=800&height=500&nologo=true&seed={seed}"
-        
-        # Comprobamos en silencio si el enlace funciona de verdad
-        respuesta = requests.get(url_intentada, timeout=5)
-        
-        # Si la respuesta es perfecta (200) y de verdad es una imagen, la usamos
-        if respuesta.status_code == 200 and 'image' in respuesta.headers.get('content-type', '').lower():
-            return url_intentada
-        else:
-            return imagen_emergencia
-    except:
-        return imagen_emergencia
-
-# --- IA RECETAS ---
-def generar_receta(ingredientes, tiempo, tipo):
+# --- IA RECETAS (AHORA CON ALÉRGENOS) ---
+def generar_receta(ingredientes, tiempo, tipo, alergenos):
     client = Groq(api_key=GROQ_API_KEY)
     
     regla_tiempo = f"Ajusta las técnicas para {tiempo}."
     if "+2h" in str(tiempo): regla_tiempo = "Tiempo ILIMITADO. Slow Food."
+    
+    # Nueva regla estricta de alérgenos
+    regla_alergenos = f"ESTÁ TOTAL Y ABSOLUTAMENTE PROHIBIDO USAR: {alergenos}. Excluye cualquier derivado." if alergenos else "Ninguna restricción de alérgenos."
 
     prompt = f"""Eres un Chef Ejecutivo. Diseña una receta de {tipo} con: {ingredientes}.
     
     REGLAS ESTRICTAS:
     1. TIEMPO: {regla_tiempo}
-    2. CALORÍAS: Inventa un número realista y añade 'kcal' (ejemplo: 450 kcal). ESTÁ ESTRICTAMENTE PROHIBIDO ESCRIBIR EL TIEMPO EN ESTE CAMPO.
+    2. CALORÍAS: Inventa un número realista y añade 'kcal'. ESTÁ PROHIBIDO ESCRIBIR EL TIEMPO AQUÍ.
+    3. ALÉRGENOS: {regla_alergenos}
     
     Devuelve EXACTAMENTE este formato JSON:
     {{
@@ -158,7 +150,7 @@ def generar_receta(ingredientes, tiempo, tipo):
     except: 
         return None
 
-# --- INTERFAZ ---
+# --- INTERFAZ ELEGANTE ---
 def mostrar_tarjeta(r, indice=0):
     t = obtener_texto_seguro(r.get('Titulo') or r.get('titulo') or r.get('Título'), "Receta Gourmet")
     tiempo = obtener_texto_seguro(r.get('Tiempo') or r.get('tiempo'), "")
@@ -168,37 +160,33 @@ def mostrar_tarjeta(r, indice=0):
     pas_lista = procesar_lista(r.get('Pasos') or r.get('pasos'), es_paso=True)
 
     st.markdown('<div class="recipe-card">', unsafe_allow_html=True)
-    st.markdown(f'<h2 class="serif-title" style="margin-top:0px; margin-bottom:5px;">{t}</h2>', unsafe_allow_html=True)
+    
+    st.markdown(f'<h2 class="serif-title" style="margin-top:0px; font-size: 2.2rem; margin-bottom:15px;">🍽️ {t}</h2>', unsafe_allow_html=True)
     
     info_texto = ""
-    if tiempo and tiempo.upper() != "N/A": info_texto += f"⏱️ Tiempo: {tiempo} &nbsp;&nbsp;"
-    if kcal and kcal.upper() != "N/A": info_texto += f"🔥 Calorías: {kcal}"
+    if tiempo and tiempo.upper() != "N/A": info_texto += f"⏱️ {tiempo} &nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp; "
+    if kcal and kcal.upper() != "N/A": info_texto += f"🔥 {kcal}"
         
     if info_texto:
-        st.markdown(f'<p style="color:#C86C58; font-weight:700; font-size:1.1rem; margin-bottom:15px;">{info_texto}</p>', unsafe_allow_html=True)
-    
-    # Aquí cargamos la imagen con el salvavidas
-    url_img = conseguir_url_imagen(t)
-    st.image(url_img, use_container_width=True)
+        st.markdown(f'<div class="recipe-meta">{info_texto}</div>', unsafe_allow_html=True)
 
     with st.expander("VER RECETA PASO A PASO"):
         st.write("### 🛒 Ingredientes")
         for i in ing_lista: st.write(f"- {i}")
+        st.write("---")
         st.write("### 👨‍🍳 Preparación")
         for idx, p in enumerate(pas_lista): st.write(f"**{idx+1}.** {p}")
         
+        st.write("") 
         c1, c2 = st.columns(2)
         with c1:
-            if st.button("💾 Guardar", key=f"sv_{indice}"):
+            if st.button("💾 Guardar en Colección", key=f"sv_{indice}"):
                 payload = {"Titulo": t, "Ingredientes": " | ".join(ing_lista), "Pasos": " | ".join(pas_lista), "Tiempo": tiempo, "Calorias": kcal}
                 requests.post(URL_WEBHOOK, json=payload)
                 st.toast("¡Guardado en la base de datos!")
         with c2:
-            try: img_bytes = requests.get(url_img, timeout=5).content
-            except: img_bytes = None
-            
             nombre_archivo = f"{t.replace(' ', '_')}.pdf"
-            pdf_b = generar_pdf(t, ing_lista, pas_lista, tiempo, kcal, img_bytes)
+            pdf_b = generar_pdf(t, ing_lista, pas_lista, tiempo, kcal)
             st.download_button("📄 Descargar PDF", data=pdf_b, file_name=nombre_archivo, mime="application/pdf", key=f"pdf_{indice}")
             
     st.markdown("</div>", unsafe_allow_html=True)
@@ -212,12 +200,15 @@ if menu == "Diseñar":
     with col1: tipo = st.selectbox("Momento", ["Comida", "Cena", "Postre"])
     with col2: t_slider = st.select_slider("Tiempo", ["15 min", "30 min", "45 min", "60 min", "120 min", "+2h (Slow Food)"], value="30 min")
         
-    ing_input = st.text_area("Ingredientes", placeholder="Ej: salmón, langostinos, espinas de pescado, limón...")
+    ing_input = st.text_area("Ingredientes principales", placeholder="Ej: pollo, arroz, pimientos...")
+    # AQUÍ ESTÁ EL NUEVO CAMPO DE ALÉRGENOS
+    alergenos_input = st.text_input("🚫 Alérgenos a evitar (Opcional)", placeholder="Ej: gluten, lactosa, frutos secos, huevo...")
     
     if st.button("DISEÑAR MI PLATO", use_container_width=True):
         if ing_input:
-            with st.spinner("👨‍🍳 El Chef está desarrollando tu obra de arte..."):
-                resultado = generar_receta(ing_input, t_slider, tipo)
+            with st.spinner("👨‍🍳 El Chef está redactando tu obra de arte..."):
+                # Le pasamos los alérgenos a la IA
+                resultado = generar_receta(ing_input, t_slider, tipo, alergenos_input)
                 if resultado: st.session_state.actual = resultado
             
     if 'actual' in st.session_state: mostrar_tarjeta(st.session_state.actual)
