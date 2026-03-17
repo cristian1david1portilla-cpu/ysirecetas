@@ -18,17 +18,17 @@ except ImportError:
 # --- CONFIGURACIÓN DE PÁGINA ---
 st.set_page_config(page_title="¿Y Si Recetas?", page_icon="🌿", layout="centered")
 
-# --- DISEÑO PREMIUM Y DESTRUCCIÓN DE LA BARRA DE STREAMLIT ---
+# --- DISEÑO PREMIUM Y DESTRUCCIÓN INTELIGENTE DE LA BARRA ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,700;1,500&family=Poppins:wght@300;400;500;600;700&display=swap');
     
-    /* ANIQUILAR LA BARRA DE STREAMLIT SUPERIOR */
-    [data-testid="stHeader"] { display: none !important; }
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
+    [data-testid="stToolbar"] { display: none !important; }
+    [data-testid="stHeaderActionElements"] { display: none !important; }
+    #MainMenu { visibility: hidden !important; }
+    footer { visibility: hidden !important; }
+    header { background-color: transparent !important; }
     
-    /* FONDO CON TEXTURA SUTIL (Patrón de puntos/mármol muy fino) */
     .stApp { 
         background-color: #EAF2E8; 
         background-image: radial-gradient(#C4D4C4 1px, transparent 1px);
@@ -39,10 +39,8 @@ st.markdown("""
     
     h1, h2, h3, .serif-title { font-family: 'Lora', serif !important; color: #1E2B1E !important; }
     
-    /* Título principal más limpio, sin subtítulo recargado */
     .brand-title { text-align: center; font-size: 4rem !important; margin-top: 2rem; margin-bottom: 2rem; font-weight: 700; letter-spacing: -1px; color: #1E2B1E !important;}
     
-    /* Tarjetas impecables */
     .recipe-card { 
         background: #FFFFFF; 
         border-radius: 16px; 
@@ -129,7 +127,7 @@ def generar_receta(ingredientes, tiempo, tipo, alergenos, es_sorpresa=False):
     client = Groq(api_key=GROQ_API_KEY)
     regla_tiempo = "Tiempo ILIMITADO. Slow Food." if "+2h" in str(tiempo) else f"Ajusta las técnicas para {tiempo}."
     regla_alergenos = f"PROHIBIDO USAR: {alergenos}. Excluye derivados." if alergenos else "Ninguna restricción."
-    instruccion_ingredientes = "Crea una receta totalmente libre, creativa y de alta cocina." if es_sorpresa else f"Diseña una receta con: {ingredientes}."
+    instruccion_ingredientes = "Diseña una receta de autor, creativa, equilibrada y con técnicas de alta cocina." if es_sorpresa else f"Diseña una receta con: {ingredientes}."
 
     prompt = f"""Eres un Chef Ejecutivo. Diseña una receta de {tipo}. {instruccion_ingredientes}
     REGLAS:
@@ -176,7 +174,7 @@ def mostrar_tarjeta(r, modo="completo"):
             for idx, p in enumerate(pas_lista): st.write(f"**{idx+1}.** {p}")
             st.download_button("📄 Descargar", data=generar_pdf(t, ing_lista, pas_lista, tiempo, kcal), file_name=f"{t.replace(' ', '_')}.pdf", mime="application/pdf", key=f"pdf_res__{id_unico}")
 
-# --- NAVEGACIÓN CORPORATIVA (EL TOQUE FINAL DE PROFESIONALIDAD) ---
+# --- NAVEGACIÓN CORPORATIVA ---
 with st.sidebar:
     st.markdown("### 🌐 Navegación")
     pagina_actual = st.radio("", ["App de Cocina", "Sobre Nosotros", "Preguntas Frecuentes", "Aviso Legal y Privacidad"])
@@ -192,14 +190,18 @@ if pagina_actual == "App de Cocina":
         with col1: tipo = st.selectbox("Categoría del Plato", ["Comida", "Cena", "Postre"])
         with col2: t_slider = st.select_slider("Tiempo de Elaboración", ["15 min", "30 min", "45 min", "60 min", "120 min", "+2h (Slow Food)"], value="30 min")
             
-        ing_input = st.text_area("Ingredientes Base (Opcional)", placeholder="Si lo dejas en blanco, el Chef improvisará una receta por ti...")
+        # EL NUEVO TEXTO DE RETO (Sutil, elegante y misterioso)
+        ing_input = st.text_area("Ingredientes Base (Opcional)", placeholder="Ej: Gamba roja, ajos tiernos, un toque de azafrán... ¿Te atreves a retar al Chef?")
         alergenos_input = st.text_input("🚫 Excluir Alérgenos (Opcional)", placeholder="Ej: Gluten, lactosa...")
         
         st.write("")
         if st.button("COMENZAR CREACIÓN", use_container_width=True):
             es_sorpresa = not ing_input.strip()
-            if es_sorpresa: st.toast("🎲 ¡Activando Modo Chef Sorpresa!")
-            with st.spinner("👨‍🍳 Procesando técnicas culinarias..."):
+            
+            # EL NUEVO MENSAJE DE CARGA
+            mensaje_spinner = "✨ Dejando volar la imaginación del Chef..." if es_sorpresa else "👨‍🍳 Procesando técnicas culinarias..."
+            
+            with st.spinner(mensaje_spinner):
                 resultado = generar_receta(ing_input, t_slider, tipo, alergenos_input, es_sorpresa)
                 if resultado: st.session_state.actual = resultado
                 else: st.error("⚠️ Los fogones digitales están saturados. Por favor, haz clic de nuevo.")
