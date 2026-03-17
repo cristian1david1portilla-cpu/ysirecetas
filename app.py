@@ -18,10 +18,10 @@ except ImportError:
 # --- CONFIGURACIÓN DE PÁGINA ---
 st.set_page_config(page_title="¿Y Si Recetas?", page_icon="🌿", layout="centered")
 
-# --- DISEÑO PREMIUM Y DESTRUCCIÓN INTELIGENTE DE LA BARRA ---
+# --- DISEÑO PREMIUM: COCINA REAL Y FONDO NÍTIDO ---
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,700;1,500&family=Poppins:wght@300;400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght=0,500;0,700;1,500&family=Poppins:wght@300;400;500;600;700&display=swap');
     
     /* CIRUGÍA LÁSER: Ocultar botones feos (Deploy, menú derecho) pero dejar el botón del panel lateral */
     [data-testid="stToolbar"] { display: none !important; }
@@ -30,58 +30,59 @@ st.markdown("""
     footer { visibility: hidden !important; }
     header { background-color: transparent !important; }
     
-    /* FONDO CON TEXTURA Y ELEMENTOS FLOTANTES DE EMERGENCIA */
+    /* FONDO NÍTIDO CON INGREDIENTES REALES (ADIÓS PUNTOS Y MANCHAS) */
     .stApp { 
-        background-color: #EAF2E8; 
+        background-color: #F0F5F0; /* Verde menta muy pálido y limpio */
         
-        /* 1. TEXTURA DE PUNTOS SUTIL (CAPA BASE) */
+        /* USAMOS 4 ICONOS SVG CULINARIOS REALES Y NÍTIDOS */
         background-image: 
-            radial-gradient(#C4D4C4 1px, transparent 1px),
+            /* 1. Cabeza de Ajo (Top Left) */
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%238A9A5B' fill-opacity='0.15' d='M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12C20,13.61 19.53,15.11 18.72,16.38C18.17,15.5 17.15,15 16,15C15.15,15 14.39,15.3 13.79,15.79C13.29,15.3 12.67,15 12,15C11.33,15 10.71,15.3 10.21,15.79C9.61,15.3 8.85,15 8,15C6.85,15 5.83,15.5 5.28,16.38C4.47,15.11 4,13.61 4,12A8,8 0 0,1 12,4M12,17A1,1 0 0,1 13,18A1,1 0 0,1 12,19A1,1 0 0,1 11,18A1,1 0 0,1 12,17M8,17A1,1 0 0,1 9,18A1,1 0 0,1 8,19A1,1 0 0,1 7,18A1,1 0 0,1 8,17M16,17A1,1 0 0,1 17,18A1,1 0 0,1 16,19A1,1 0 0,1 15,18A1,1 0 0,1 16,17Z'/%3E%3C/svg%3E"),
             
-            /* 2. INGREDIENTES FLOTANTES (SVG transparentes) */
-            /* Arriba Derecha (Romero y Ajo) */
-            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cpath d='M70,20 C80,30 80,40 70,50 C60,60 50,60 40,50 C30,40 30,30 40,20 C50,10 60,10 70,20 Z M45,25 A5,5 0 1,1 45,35 A5,5 0 1,1 45,25 Z M65,45 A5,5 0 1,1 65,55 A5,5 0 1,1 65,45 Z' fill='%23C4D4C4' fill-opacity='0.15'/%3E%3C/svg%3E"),
-            /* Abajo Izquierda (Tomate y Tenedor sutiles) */
-            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cpath d='M20,70 A20,20 0 1,1 60,70 A20,20 0 1,1 20,70 Z M40,65 A10,10 0 1,0 40,85 A10,10 0 1,0 40,65 Z M35,90 L35,60 L38,60 L38,90 Z M42,90 L42,60 L45,60 L45,90 Z' fill='%23C4D4C4' fill-opacity='0.15'/%3E%3C/svg%3E");
-        
-        /* POSICIONAMIENTO DE LOS ELEMENTOS */
+            /* 2. Rama de Romero (Top Right) */
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%238A9A5B' fill-opacity='0.15' d='M17,12C17,14.42 15.28,16.44 13,16.9V21H11V16.9C8.72,16.44 7,14.42 7,12C7,9.58 8.72,7.56 11,7.1V3H13V7.1C15.28,7.56 17,9.58 17,12M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9Z'/%3E%3C/svg%3E"),
+            
+            /* 3. Batidor de Varillas (Bottom Left) */
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%238A9A5B' fill-opacity='0.15' d='M12 2c-.6 0-1 .4-1 1s.4 1 1 1c2.8 0 5 2.2 5 5s-2.2 5-5 5-5-2.2-5-5c0-.6-.4-1-1-1s-1 .4-1 1c0 3.9 3.1 7 7 7s7-3.1 7-7-3.1-7-7-7zM2.2 2.2a1 1 0 00-.2 1.4l2 3A1 1 0 005.4 6a1 1 0 00.2-1.4l-2-3a1 1 0 00-1.4-.2zm19.6 0a1 1 0 01.2 1.4l-2 3a1 1 0 01-1.6-.6a1 1 0 01-.2-1.4l2-3a1 1 0 011.4-.2zM12 18a1 1 0 00-1 1v2a1 1 0 002 0v-2a1 1 0 00-1-1z'/%3E%3C/svg%3E"),
+            
+            /* 4. Guindilla Picante (Bottom Right) */
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%238A9A5B' fill-opacity='0.15' d='M19.6 4.4c.5.5.5 1.3 0 1.8l-1.4 1.4c-.2.2-.5.3-.8.3-.1 0-.3 0-.4-.1-1.2-.6-2.5-1-3.9-1.2.1 1.4.5 2.7 1.2 3.9.1.1.1.3.1.4 0 .3-.1.6-.3.8L12.7 13c-.5.5-1.3.5-1.8 0l-1.4-1.4c-.5-.5-.5-1.3 0-1.8l1.4-1.4c.2-.2.5-.3.8-.3.1 0 .3 0 .4.1.6 1.2 1 2.5 1.2 3.9.1-.1.1-.3.1-.4 0-.3-.1-.6-.3-.8l-1.4-1.4c-.5-.5-.5-1.3 0-1.8l1.4-1.4c.5-.5 1.3-.5 1.8 0l1.4 1.4c.2.2.3.5.3.8 0 .1 0 .3-.1.4.6 1.2 1 2.5 1.2 3.9.1-.1.1-.3.1-.4 0-.3-.1-.6-.3-.8l-1.4-1.4c-.5-.5-.5-1.3 0-1.8l1.4-1.4c.5-.5 1.3-.5 1.8 0z'/%3E%3C/svg%3E");
+            
+        /* POSICIONAMIENTO DE LOS INGREDIENTES */
         background-position: 
-            0 0,           /* Textura de puntos */
-            calc(100% - 30px) 30px, /* Romero (Top Right) */
-            30px calc(100% - 30px);   /* Tomate (Bottom Left) */
+            30px 40px,               /* Ajo (Top Left) */
+            calc(100% - 30px) 150px,   /* Romero (Right Side) */
+            70px calc(100% - 70px),   /* Batidor (Bottom Left) */
+            calc(100% - 80px) calc(100% - 30px); /* Chili (Bottom Right) */
             
-        background-repeat: 
-            repeat,        /* Textura de puntos */
-            no-repeat,     /* Romero */
-            no-repeat;     /* Tomate */
-            
-        background-attachment: fixed; /* Mantiene los elementos quietos al hacer scroll */
-        background-size: 30px 30px, 150px 150px, 150px 150px; /* Tamaño de cada capa */
+        background-repeat: no-repeat;
+        background-attachment: fixed; /* Los ingredientes se quedan quietos al hacer scroll */
+        background-size: 150px 150px; /* Tamaño grande y nítido para los iconos */
         
-        color: #2D3A2D; 
+        color: #1A251A; 
         font-family: 'Poppins', sans-serif; 
     }
     
-    h1, h2, h3, .serif-title { font-family: 'Lora', serif !important; color: #1E2B1E !important; }
+    h1, h2, h3, .serif-title { font-family: 'Lora', serif !important; color: #0C1A0C !important; }
     
-    .brand-title { text-align: center; font-size: 4rem !important; margin-top: 2rem; margin-bottom: 2rem; font-weight: 700; letter-spacing: -1px; color: #1E2B1E !important;}
+    .brand-title { text-align: center; font-size: 4rem !important; margin-top: 2rem; margin-bottom: 2rem; font-weight: 700; letter-spacing: -1px; color: #0C1A0C !important;}
     
     .recipe-card { 
         background: #FFFFFF; 
         border-radius: 16px; 
         padding: 40px; 
-        box-shadow: 0 10px 40px rgba(45, 58, 45, 0.08); 
+        box-shadow: 0 10px 40px rgba(12, 26, 12, 0.06); 
         margin-bottom: 30px; 
         margin-top: 10px;
-        border: 1px solid #DCE6DC;
-        /* Aseguramos que la tarjeta esté por encima del fondo */
+        border: 1px solid #D1E0D1;
+        /* La tarjeta tapa los ingredientes del fondo para leer bien */
         position: relative; 
         z-index: 10;
     }
     
     .recipe-meta {
-        background-color: #F5F9F5;
-        color: #4A804D; 
+        background-color: #F0F5F0;
+        color: #385C38; /* Verde Oliva Michelin */
         font-weight: 600;
         font-size: 0.95rem;
         text-transform: uppercase;
@@ -90,11 +91,11 @@ st.markdown("""
         padding: 10px 15px;
         border-radius: 8px;
         display: inline-block;
-        border: 1px solid #DCE6DC;
+        border: 1px solid #D1E0D1;
     }
     
     .stButton>button, .stDownloadButton>button { 
-        background-color: #1E2B1E !important; 
+        background-color: #0C1A0C !important; /* Verde casi negro */
         color: #FFFFFF !important; 
         border-radius: 10px !important; 
         font-weight: 600 !important; 
@@ -107,9 +108,9 @@ st.markdown("""
         transition: all 0.3s ease;
     }
     .stButton>button:hover, .stDownloadButton>button:hover {
-        background-color: #4A804D !important; 
+        background-color: #385C38 !important; /* Verde Oliva Michelin al pasar el ratón */
         color: #FFFFFF !important;
-        box-shadow: 0 4px 12px rgba(74, 128, 77, 0.3);
+        box-shadow: 0 4px 12px rgba(56, 92, 56, 0.3);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -130,22 +131,22 @@ def generar_pdf(titulo, ingredientes, pasos, tiempo, kcal):
     pdf.set_auto_page_break(auto=True, margin=15)
     ancho_max = 190
     pdf.set_font("helvetica", "B", 22)
-    pdf.set_text_color(30, 43, 30)
+    pdf.set_text_color(12, 26, 12)
     pdf.multi_cell(ancho_max, 10, limpiar_texto_pdf(titulo), align='C')
     pdf.ln(5)
     pdf.set_font("helvetica", "I", 10)
-    pdf.set_text_color(74, 128, 77)
+    pdf.set_text_color(56, 92, 56)
     pdf.cell(ancho_max, 8, limpiar_texto_pdf(f"TIEMPO: {tiempo} | CALORÍAS: {kcal}"), align='C', ln=True)
     pdf.ln(8)
     pdf.set_font("helvetica", "B", 12)
-    pdf.set_text_color(30, 43, 30)
+    pdf.set_text_color(12, 26, 12)
     pdf.cell(ancho_max, 8, "INGREDIENTES:", ln=True)
     pdf.set_font("helvetica", "", 11)
-    pdf.set_text_color(60, 60, 60)
+    pdf.set_text_color(40, 40, 40)
     for ing in ingredientes: pdf.multi_cell(ancho_max, 6, f"- {limpiar_texto_pdf(ing)}" if not limpiar_texto_pdf(ing).startswith("-") else limpiar_texto_pdf(ing))
     pdf.ln(5)
     pdf.set_font("helvetica", "B", 12)
-    pdf.set_text_color(30, 43, 30)
+    pdf.set_text_color(12, 26, 12)
     pdf.cell(ancho_max, 8, "ELABORACIÓN:", ln=True)
     pdf.set_font("helvetica", "", 10)
     for idx, p in enumerate(pasos): pdf.multi_cell(ancho_max, 5, f"{idx+1}. {re.sub(r'^-\s*', '', limpiar_texto_pdf(p))}"); pdf.ln(2)
