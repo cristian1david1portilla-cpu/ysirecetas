@@ -6,14 +6,14 @@ import subprocess
 import sys
 import uuid
 
-# Instalación de librería para PDF si no existe
+# Instalación automática de librería para PDF
 try:
     from fpdf import FPDF
 except ImportError:
     subprocess.check_call([sys.executable, "-m", "pip", "install", "fpdf2"])
     from fpdf import FPDF
 
-# --- CONFIGURACIÓN DE PÁGINA (LOGO EN PESTAÑA) ---
+# --- CONFIGURACIÓN DE PÁGINA (ESTADO EXPANDIDO Y LOGO EN PESTAÑA) ---
 st.set_page_config(
     page_title="YSi Recetas", 
     page_icon="logo.png", 
@@ -26,13 +26,13 @@ st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,700;1,500&family=Poppins:wght@300;400;500;600;700&display=swap');
     
-    /* Ocultar elementos innecesarios de Streamlit */
+    /* Ocultar elementos de Streamlit que ensucian el diseño */
     [data-testid="stHeaderActionElements"] { display: none !important; }
     #MainMenu { display: none !important; }
     footer { display: none !important; }
     header { background-color: transparent !important; }
     
-    /* FONDO LIMPIO CON ICONOS DE COCINA REALES */
+    /* FONDO LIMPIO CON ICONOS DE COCINA REALES (OPACIDAD BAJA) */
     .stApp { 
         background-color: #F4F7F4; 
         background-image: 
@@ -99,7 +99,7 @@ st.markdown("""
 
 GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 
-# --- FUNCIONES DE APOYO ---
+# --- FUNCIONES AUXILIARES ---
 def obtener_texto_seguro(valor, por_defecto=""): return str(valor) if not isinstance(valor, float) and valor else por_defecto
 def limpiar_texto_pdf(texto): return str(texto).replace('•', '-').replace('–', '-').replace('—', '-').encode('latin-1', 'ignore').decode('latin-1').strip()
 def procesar_lista(datos_brutos):
@@ -181,7 +181,7 @@ with st.sidebar:
 
 # --- RENDERIZADO DE PÁGINAS ---
 if pagina_actual == "App de Cocina":
-    # INTEGRACIÓN DEL LOGO CENTRADO
+    # --- LOGO CENTRADO ---
     st.write("")
     col_l1, col_l2, col_l3 = st.columns([1, 1.5, 1])
     with col_l2:
@@ -205,7 +205,7 @@ if pagina_actual == "App de Cocina":
         with st.spinner(mensaje_spinner):
             resultado = generar_receta(ing_input, t_slider, tipo, alergenos_input, es_sorpresa)
             if resultado: st.session_state.actual = resultado
-            else: st.error("⚠️ Error en los fogones. Inténtalo de nuevo.")
+            else: st.error("⚠️ Error en los fogones digitales. Inténtalo de nuevo.")
             
     if 'actual' in st.session_state: 
         st.markdown("---")
