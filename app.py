@@ -8,7 +8,8 @@ import requests
 import subprocess
 import sys
 import io
-import urllib.parse  # NUEVA LIBRERÍA PARA EL MOTOR DE IMÁGENES
+import urllib.parse
+
 
 try:
     from fpdf import FPDF
@@ -104,11 +105,11 @@ def generar_pdf(titulo, ingredientes, pasos, tiempo, kcal, img_bytes=None):
             
     return bytes(pdf.output())
 
-# --- IA VISUAL (MOTOR BLINDADO ANTI-CORTES) ---
+# --- IA VISUAL ---
 @st.cache_data(show_spinner=False)
 def conseguir_imagen(prompt_visual_ingles):
     try:
-        # Usamos Pollinations AI: sin límite, sin registro, irrompible.
+        # Motor Pollinations AI: sin límite y sin registro
         prompt_codificado = urllib.parse.quote(prompt_visual_ingles)
         url = f"https://image.pollinations.ai/prompt/{prompt_codificado}?width=800&height=600&nologo=true"
         r = requests.get(url, timeout=30)
