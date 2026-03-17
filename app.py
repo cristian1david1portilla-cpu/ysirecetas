@@ -23,16 +23,41 @@ st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,700;1,500&family=Poppins:wght@300;400;500;600;700&display=swap');
     
+    /* CIRUGÍA LÁSER: Ocultar botones feos (Deploy, menú derecho) pero dejar el botón del panel lateral */
     [data-testid="stToolbar"] { display: none !important; }
     [data-testid="stHeaderActionElements"] { display: none !important; }
     #MainMenu { visibility: hidden !important; }
     footer { visibility: hidden !important; }
     header { background-color: transparent !important; }
     
+    /* FONDO CON TEXTURA Y ELEMENTOS FLOTANTES DE EMERGENCIA */
     .stApp { 
         background-color: #EAF2E8; 
-        background-image: radial-gradient(#C4D4C4 1px, transparent 1px);
-        background-size: 30px 30px;
+        
+        /* 1. TEXTURA DE PUNTOS SUTIL (CAPA BASE) */
+        background-image: 
+            radial-gradient(#C4D4C4 1px, transparent 1px),
+            
+            /* 2. INGREDIENTES FLOTANTES (SVG transparentes) */
+            /* Arriba Derecha (Romero y Ajo) */
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cpath d='M70,20 C80,30 80,40 70,50 C60,60 50,60 40,50 C30,40 30,30 40,20 C50,10 60,10 70,20 Z M45,25 A5,5 0 1,1 45,35 A5,5 0 1,1 45,25 Z M65,45 A5,5 0 1,1 65,55 A5,5 0 1,1 65,45 Z' fill='%23C4D4C4' fill-opacity='0.15'/%3E%3C/svg%3E"),
+            /* Abajo Izquierda (Tomate y Tenedor sutiles) */
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cpath d='M20,70 A20,20 0 1,1 60,70 A20,20 0 1,1 20,70 Z M40,65 A10,10 0 1,0 40,85 A10,10 0 1,0 40,65 Z M35,90 L35,60 L38,60 L38,90 Z M42,90 L42,60 L45,60 L45,90 Z' fill='%23C4D4C4' fill-opacity='0.15'/%3E%3C/svg%3E");
+        
+        /* POSICIONAMIENTO DE LOS ELEMENTOS */
+        background-position: 
+            0 0,           /* Textura de puntos */
+            calc(100% - 30px) 30px, /* Romero (Top Right) */
+            30px calc(100% - 30px);   /* Tomate (Bottom Left) */
+            
+        background-repeat: 
+            repeat,        /* Textura de puntos */
+            no-repeat,     /* Romero */
+            no-repeat;     /* Tomate */
+            
+        background-attachment: fixed; /* Mantiene los elementos quietos al hacer scroll */
+        background-size: 30px 30px, 150px 150px, 150px 150px; /* Tamaño de cada capa */
+        
         color: #2D3A2D; 
         font-family: 'Poppins', sans-serif; 
     }
@@ -49,6 +74,9 @@ st.markdown("""
         margin-bottom: 30px; 
         margin-top: 10px;
         border: 1px solid #DCE6DC;
+        /* Aseguramos que la tarjeta esté por encima del fondo */
+        position: relative; 
+        z-index: 10;
     }
     
     .recipe-meta {
@@ -190,17 +218,13 @@ if pagina_actual == "App de Cocina":
         with col1: tipo = st.selectbox("Categoría del Plato", ["Comida", "Cena", "Postre"])
         with col2: t_slider = st.select_slider("Tiempo de Elaboración", ["15 min", "30 min", "45 min", "60 min", "120 min", "+2h (Slow Food)"], value="30 min")
             
-        # EL NUEVO TEXTO DE RETO (Sutil, elegante y misterioso)
         ing_input = st.text_area("Ingredientes Base (Opcional)", placeholder="Ej: Gamba roja, ajos tiernos, un toque de azafrán... ¿Te atreves a retar al Chef?")
         alergenos_input = st.text_input("🚫 Excluir Alérgenos (Opcional)", placeholder="Ej: Gluten, lactosa...")
         
         st.write("")
         if st.button("COMENZAR CREACIÓN", use_container_width=True):
             es_sorpresa = not ing_input.strip()
-            
-            # EL NUEVO MENSAJE DE CARGA
             mensaje_spinner = "✨ Dejando volar la imaginación del Chef..." if es_sorpresa else "👨‍🍳 Procesando técnicas culinarias..."
-            
             with st.spinner(mensaje_spinner):
                 resultado = generar_receta(ing_input, t_slider, tipo, alergenos_input, es_sorpresa)
                 if resultado: st.session_state.actual = resultado
