@@ -178,7 +178,7 @@ def mostrar_tarjeta(r, indice=0):
         try: img_bytes = requests.get(img_db).content
         except: pass
     else:
-        with st.spinner("Fotografiando el emplatado final..."):
+      with st.spinner(f"👨‍🍳 Fotografiando el emplatado de {t}..."):
             img_bytes = conseguir_imagen(prompt_img)
             if img_bytes: st.image(img_bytes, use_container_width=True)
 
@@ -218,7 +218,7 @@ if menu == "Diseñar":
     
     if st.button("DISEÑAR MI PLATO", use_container_width=True):
         if ing_input:
-            with st.spinner("El Chef está desarrollando tu receta..."):
+           with st.spinner("👨‍🍳 El Chef está desarrollando tu obra de arte..."):
                 resultado = generar_receta(ing_input, t_slider, tipo)
                 if resultado: st.session_state.actual = resultado
             
