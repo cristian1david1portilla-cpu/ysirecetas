@@ -6,27 +6,33 @@ import subprocess
 import sys
 import uuid
 
+# Instalación de librería para PDF si no existe
 try:
     from fpdf import FPDF
 except ImportError:
     subprocess.check_call([sys.executable, "-m", "pip", "install", "fpdf2"])
     from fpdf import FPDF
 
-# --- CONFIGURACIÓN DE PÁGINA (¡AHORA CON EL MENÚ SIEMPRE ABIERTO!) ---
-st.set_page_config(page_title="¿Y Si Recetas?", page_icon="🌿", layout="centered", initial_sidebar_state="expanded")
+# --- CONFIGURACIÓN DE PÁGINA (LOGO EN PESTAÑA) ---
+st.set_page_config(
+    page_title="YSi Recetas", 
+    page_icon="logo.png", 
+    layout="centered", 
+    initial_sidebar_state="expanded"
+)
 
-# --- DISEÑO PREMIUM Y DESTRUCCIÓN INTELIGENTE DE LA BARRA ---
+# --- DISEÑO PREMIUM Y LIMPIEZA DE INTERFAZ ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,700;1,500&family=Poppins:wght@300;400;500;600;700&display=swap');
     
-    /* CIRUGÍA: Ocultamos la parte derecha (Deploy) pero dejamos a salvo el botón del menú lateral */
+    /* Ocultar elementos innecesarios de Streamlit */
     [data-testid="stHeaderActionElements"] { display: none !important; }
     #MainMenu { display: none !important; }
     footer { display: none !important; }
     header { background-color: transparent !important; }
     
-    /* FONDO NÍTIDO, LIMPIO Y CON ELEMENTOS DE COCINA REALES */
+    /* FONDO LIMPIO CON ICONOS DE COCINA REALES */
     .stApp { 
         background-color: #F4F7F4; 
         background-image: 
@@ -43,7 +49,6 @@ st.markdown("""
     }
     
     h1, h2, h3, .serif-title { font-family: 'Lora', serif !important; color: #1E2B1E !important; }
-    .brand-title { text-align: center; font-size: 4rem !important; margin-top: 2rem; margin-bottom: 2rem; font-weight: 700; letter-spacing: -1px; color: #1E2B1E !important;}
     
     .recipe-card { 
         background: #FFFFFF; 
@@ -94,6 +99,7 @@ st.markdown("""
 
 GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 
+# --- FUNCIONES DE APOYO ---
 def obtener_texto_seguro(valor, por_defecto=""): return str(valor) if not isinstance(valor, float) and valor else por_defecto
 def limpiar_texto_pdf(texto): return str(texto).replace('•', '-').replace('–', '-').replace('—', '-').encode('latin-1', 'ignore').decode('latin-1').strip()
 def procesar_lista(datos_brutos):
@@ -175,14 +181,21 @@ with st.sidebar:
 
 # --- RENDERIZADO DE PÁGINAS ---
 if pagina_actual == "App de Cocina":
-    st.markdown("<h1 class='brand-title'>¿Y Si Recetas?</h1>", unsafe_allow_html=True)
-    
+    # INTEGRACIÓN DEL LOGO CENTRADO
     st.write("")
+    col_l1, col_l2, col_l3 = st.columns([1, 1.5, 1])
+    with col_l2:
+        try:
+            st.image("logo.png", use_container_width=True)
+        except:
+            st.markdown("<h1 class='brand-title'>YSi Recetas</h1>", unsafe_allow_html=True)
+    st.write("")
+    
     col1, col2 = st.columns(2)
     with col1: tipo = st.selectbox("Categoría del Plato", ["Comida", "Cena", "Postre"])
     with col2: t_slider = st.select_slider("Tiempo de Elaboración", ["15 min", "30 min", "45 min", "60 min", "120 min", "+2h (Slow Food)"], value="30 min")
         
-    ing_input = st.text_area("Ingredientes Base (Opcional)", placeholder="Ej: Gamba roja, ajos tiernos, un toque de azafrán... ¿Te atreves a retar al Chef?")
+    ing_input = st.text_area("Ingredientes Base (Opcional)", placeholder="Ej: Gamba roja, ajos tiernos... ¿Te atreves a retar al Chef?")
     alergenos_input = st.text_input("🚫 Excluir Alérgenos (Opcional)", placeholder="Ej: Gluten, lactosa...")
     
     st.write("")
@@ -192,37 +205,31 @@ if pagina_actual == "App de Cocina":
         with st.spinner(mensaje_spinner):
             resultado = generar_receta(ing_input, t_slider, tipo, alergenos_input, es_sorpresa)
             if resultado: st.session_state.actual = resultado
-            else: st.error("⚠️ Los fogones digitales están saturados. Por favor, haz clic de nuevo.")
+            else: st.error("⚠️ Error en los fogones. Inténtalo de nuevo.")
             
     if 'actual' in st.session_state: 
         st.markdown("---")
         mostrar_tarjeta(st.session_state.actual)
 
 elif pagina_actual == "Sobre Nosotros":
-    st.markdown("<h1 class='serif-title' style='text-align:center; font-size: 3rem;'>Nuestra Misión</h1>", unsafe_allow_html=True)
+    col_l1, col_l2, col_l3 = st.columns([1, 1, 1])
+    with col_l2:
+        try: st.image("logo.png", use_container_width=True)
+        except: pass
+    st.markdown("<h1 class='serif-title' style='text-align:center; font-size: 2rem; margin-top:-10px;'>La Nostra Missió</h1>", unsafe_allow_html=True)
     st.markdown('<div class="recipe-card">', unsafe_allow_html=True)
-    st.write("### Democratizando la Alta Cocina")
-    st.write("¿Y Si Recetas? nace de una premisa sencilla: cualquier persona, independientemente de su nivel culinario, debería poder transformar los ingredientes olvidados de su nevera en una experiencia gastronómica de restaurante de lujo.")
-    st.write("Aprovechando el poder de la Inteligencia Artificial Generativa (LLMs de última generación), hemos entrenado a nuestro motor para que actúe no solo como un recetario, sino como un Chef Ejecutivo que comprende técnicas, tiempos, balance de sabores y restricciones alimentarias en tiempo real.")
-    st.write("**Fase Actual:** MVP (Producto Mínimo Viable) v1.0. Validando la integración pura de la API de Groq en tiempo real.")
+    st.write("YSi Recetas neix de la idea que qualsevol pot gaudir de l'alta cuina amb el que té a casa. Utilitzem IA per reduir el malbaratament alimentari i democratitzar la gastronomia d'autor.")
     st.markdown('</div>', unsafe_allow_html=True)
 
 elif pagina_actual == "Preguntas Frecuentes":
     st.markdown("<h1 class='serif-title' style='text-align:center; font-size: 3rem;'>FAQ</h1>", unsafe_allow_html=True)
     st.markdown('<div class="recipe-card">', unsafe_allow_html=True)
     with st.expander("¿Se guardan mis recetas?"):
-        st.write("No. Por motivos de privacidad y para garantizar una experiencia 100% efímera y personalizada, las recetas se generan en tiempo real y no se almacenan en ninguna base de datos. Si te gusta un plato, te recomendamos usar el botón de 'Descargar Receta en PDF'.")
-    with st.expander("¿Cómo gestiona la IA las intolerancias alimentarias?"):
-        st.write("El sistema inyecta instrucciones estrictas (System Prompts) en el modelo lingüístico para realizar un filtrado negativo. Si indicas 'celíaco', la IA descarta el trigo, centeno, cebada y avena de su matriz de generación, ofreciendo alternativas seguras.")
-    with st.expander("¿De dónde salen las estimaciones de calorías?"):
-        st.write("La IA calcula un valor heurístico aproximado basándose en las tablas nutricionales estándar de los ingredientes seleccionados y el método de cocción.")
+        st.write("No. Las recetas se generan al momento y son efímeras. Descárgalas en PDF si te gustan.")
     st.markdown('</div>', unsafe_allow_html=True)
 
 elif pagina_actual == "Aviso Legal y Privacidad":
     st.markdown("<h1 class='serif-title' style='text-align:center; font-size: 3rem;'>Legal</h1>", unsafe_allow_html=True)
     st.markdown('<div class="recipe-card">', unsafe_allow_html=True)
-    st.write("### Términos de Uso y Descargo de Responsabilidad")
-    st.write("Esta aplicación es un **Prototipo Tecnológico / Prueba de Concepto** desarrollado con fines académicos e investigativos.")
-    st.write("**Responsabilidad Alimentaria:** Las recetas e informaciones nutricionales y de alérgenos son generadas mediante algoritmos de Inteligencia Artificial (LLMs). Aunque el sistema está diseñado para seguir directrices estrictas, **siempre se debe aplicar el juicio humano y consultar a profesionales médicos** en caso de alergias severas o condiciones de salud específicas. Los creadores de esta plataforma no se hacen responsables de reacciones adversas.")
-    st.write("**Protección de Datos:** No recabamos datos de carácter personal, no utilizamos bases de datos para almacenar tus inputs y no utilizamos cookies de rastreo comercial. Todo el procesamiento se realiza en tiempo real.")
+    st.write("Prototip tecnològic creat amb finalitats acadèmiques. Totes les dades es processen en temps real sense emmagatzematge extern.")
     st.markdown('</div>', unsafe_allow_html=True)
