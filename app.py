@@ -12,18 +12,18 @@ except ImportError:
     subprocess.check_call([sys.executable, "-m", "pip", "install", "fpdf2"])
     from fpdf import FPDF
 
-# --- CONFIGURACIÓN DE PÁGINA ---
-st.set_page_config(page_title="¿Y Si Recetas?", page_icon="🌿", layout="centered")
+# --- CONFIGURACIÓN DE PÁGINA (¡AHORA CON EL MENÚ SIEMPRE ABIERTO!) ---
+st.set_page_config(page_title="¿Y Si Recetas?", page_icon="🌿", layout="centered", initial_sidebar_state="expanded")
 
 # --- DISEÑO PREMIUM Y DESTRUCCIÓN INTELIGENTE DE LA BARRA ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,700;1,500&family=Poppins:wght@300;400;500;600;700&display=swap');
     
-    [data-testid="stToolbar"] { display: none !important; }
+    /* CIRUGÍA: Ocultamos la parte derecha (Deploy) pero dejamos a salvo el botón del menú lateral */
     [data-testid="stHeaderActionElements"] { display: none !important; }
-    #MainMenu { visibility: hidden !important; }
-    footer { visibility: hidden !important; }
+    #MainMenu { display: none !important; }
+    footer { display: none !important; }
     header { background-color: transparent !important; }
     
     /* FONDO NÍTIDO, LIMPIO Y CON ELEMENTOS DE COCINA REALES */
@@ -164,7 +164,6 @@ def mostrar_tarjeta(r):
     for idx, p in enumerate(pas_lista): st.write(f"**{idx+1}.** {p}")
     st.write("") 
     
-    # Botón de PDF centrado ocupando todo el ancho
     pdf_b = generar_pdf(t, ing_lista, pas_lista, tiempo, kcal)
     st.download_button("📄 Descargar Receta en PDF", data=pdf_b, file_name=f"{t.replace(' ', '_')}.pdf", mime="application/pdf", key=f"pdf_{id_unico}")
     st.markdown("</div>", unsafe_allow_html=True)
@@ -178,7 +177,6 @@ with st.sidebar:
 if pagina_actual == "App de Cocina":
     st.markdown("<h1 class='brand-title'>¿Y Si Recetas?</h1>", unsafe_allow_html=True)
     
-    # ADIÓS PESTAÑAS, DIRECTO AL GRANO
     st.write("")
     col1, col2 = st.columns(2)
     with col1: tipo = st.selectbox("Categoría del Plato", ["Comida", "Cena", "Postre"])
